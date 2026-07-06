@@ -1546,6 +1546,10 @@ html{ scrollbar-color:var(--line2) transparent }
 .brand{font-family:'Poppins',sans-serif;font-weight:700;font-stretch:normal;letter-spacing:-.01em}
 .brand img{width:auto;height:44px}
 .ft .brand img{width:auto;height:34px}
+
+/* whitepaper landing: brand lockup */
+#wpOverlay .wp-brand{display:flex;align-items:center;gap:11px;font-family:'Poppins',sans-serif;font-weight:700}
+#wpOverlay .wp-brand .wp-mark{height:34px;width:auto;display:block}
 </style>
 </head>
 <body>
@@ -1772,7 +1776,7 @@ Via <a href="https://x.com/tokenterminal" target="_blank" rel="noopener">@tokent
         <div class="quote-grid rv">
           <div class="quote-main">
             <span class="quote-mark" aria-hidden="true">&ldquo;</span>
-            <p class="quote-text">The future global economy will run on DeFi powered by RWAs and everyone has a duty to keep DeFi <span class="hl">openly accessible, properly decentralized, and free of manipulation</span> by any single corporation or individual.</p>
+            <p class="quote-text">Truly open and globally accessible markets will create <span class="hl">fair, decentralized finance for all.</span></p>
             <div class="quote-by">
               <span class="qb-name">Herwig &ldquo;Happy&rdquo; Konings</span>
               <span class="qb-role">Founder &amp; Director, RWA Foundation</span>
@@ -2631,7 +2635,7 @@ const COURSES = [
     ['How the DAO decides','Proposals move from forum to temperature check to onchain vote. $WALLY weights the vote; quorum requirements and timelocks protect against capture.','Reading governance forums is alpha. Treasury strategy shifts are announced there weeks before they show up on any dashboard.',['Forum → check → onchain vote','Quorum + timelocks are the safety rails','Forums front-run dashboards']],
     ['Treasury policy in practice','The DAO treasury holds yield-bearing RWAs; the yield funds grants, operations and incentives. Policy votes set the allocation bands the treasury must respect.','Sustainable DAOs spend yield, not principal. WALLY’s design ties the mission budget to real cash flow rather than token emissions.',['Spend yield, protect principal','Allocation bands constrain managers','Cash flow beats emissions']],
     ['Points, TGE, and you','WALLY Points record contribution before the token exists. At TGE a published conversion maps points to $WALLY, with extra weight for early, consistent activity.','Points are reputation made portable. Stack them by learning, voting and depositing: exactly the behaviors the DAO wants more of.',['Points = pre-token reputation','Conversion publishes at TGE','Consistency is weighted']],
-    ['Reading a treasury report','A healthy DAO publishes its holdings, yields and spending. Learn to read it: is spending covered by yield? Is principal intact? Are allocations within voted bands? The report is the DAO’s vital signs.','Skim for three things: cash-flow coverage, principal preservation, and band compliance. Anything off there is worth a forum question before your next vote.',['Spending should be covered by yield','Principal intact = healthy treasury','Off-band allocations deserve scrutiny']]
+    ['Reading a treasury report','A healthy DAO publishes its holdings, yields and spending. Learn to read it: is spending covered by yield? Is principal intact? Are allocations within voted bands? The report is the DAO’s vital signs.','Scan for three things: cash-flow coverage, principal preservation, and band compliance. Anything off there is worth a forum question before your next vote.',['Spending should be covered by yield','Principal intact = healthy treasury','Off-band allocations deserve scrutiny']]
   ]},
 ];
 
@@ -2912,7 +2916,7 @@ function renderOverview(){
 function renderLearn(){
   const sel=COURSES.find(c=>c.id===S.selCourse);
   $('#v-learnApp').innerHTML=`
-  <div class="vw-head"><h2>Education center</h2><p>Read each track, then pass its quiz to test your knowledge. Quizzes are designed to be tough. No skimming.</p></div>
+  <div class="vw-head"><h2>Education center</h2><p>Read each track, then pass its quiz to test your knowledge. Quizzes are designed to be tough. No shortcuts.</p></div>
   <div class="courses-grid">
     ${COURSES.map(c=>{
       const total=c.lessons.length, passed=S.quizDone.has(c.id);
@@ -4123,7 +4127,7 @@ routeFromLocation(true);
 </style>
 <div id="wpOverlay" role="dialog" aria-modal="true" aria-label="WALLY DAO Whitepaper">
 <div class="wp-top">
-  <div class="wp-brand">WALLY <b>DAO</b> <span class="wp-vtag">&middot; WHITEPAPER V2.1</span></div>
+  <div class="wp-brand"><img data-wally="logo" alt="" class="wp-mark"><span class="wp-wmk">WALLY <b>DAO</b></span> <span class="wp-vtag">&middot; WHITEPAPER V2.1</span></div>
   <div class="wp-actions">
     <a class="wp-btn wp-btn-orange" href="wally-whitepaper.pdf" download>Download PDF <span class="wp-dn">&darr;</span></a>
     <button class="wp-btn wp-btn-ghost" onclick="closeWhitepaper()">Back to wallydao.xyz</button>
@@ -4138,7 +4142,6 @@ routeFromLocation(true);
     <span class="wp-chip"><b>1B</b> supply, hard cap</span>
     <span class="wp-chip"><b>350M</b> in the vault</span>
     <span class="wp-chip"><b>$1M</b> day one</span>
-    <span class="wp-chip"><b>$100M</b> revenue switch</span>
     <span class="wp-chip"><b>100 year</b> horizon</span>
   </div>
 
