@@ -2245,6 +2245,132 @@ html{ scrollbar-color:var(--line2) transparent }
 
 
 <!-- ================= PAGE: TOKEN FUNDAMENTALS ================= -->
+  <!-- ================= PAGE: RWA NEWS (live · RWA News engine) ================= -->
+  <style>
+    #page-news{padding-top:96px}
+    .nw-pagehead{border-bottom:1px solid var(--line);padding:26px 0 18px;background:var(--bg2)}
+    .nw-ph-row{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;flex-wrap:wrap}
+    .nw-sub{color:var(--text2);max-width:640px;margin-top:8px}
+    .nw-status{font-family:var(--mono);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--text3);white-space:nowrap}
+    .nw-status .dot{color:var(--green)}
+    .nw-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:18px}
+    .nw-search{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:9px 16px}
+    .nw-search svg{width:15px;height:15px;stroke:var(--text3);fill:none;stroke-width:2}
+    .nw-search input{border:none;outline:none;background:transparent;font:inherit;font-size:14px;color:var(--text);width:100%}
+    .nw-chips{display:flex;gap:8px;flex-wrap:wrap}
+    .nw-chip{font:inherit;font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid var(--line2);background:transparent;color:var(--text2);cursor:pointer;transition:all .15s var(--ease)}
+    .nw-chip:hover{color:var(--text);border-color:var(--text3)}
+    .nw-chip.on{background:var(--orange);border-color:var(--orange);color:#fff}
+    .nw-list{display:flex;flex-direction:column;gap:12px;margin-top:22px}
+    .nw-card{display:block;background:var(--card);border:1px solid var(--line);border-radius:var(--r-s);padding:18px 20px;text-decoration:none;color:inherit;box-shadow:var(--shadow-sm);transition:transform .15s var(--ease),border-color .15s var(--ease)}
+    .nw-card:hover{transform:translateY(-2px);border-color:var(--orange)}
+    .nw-card h3{font-family:'Poppins',sans-serif;font-size:16.5px;font-weight:600;line-height:1.35;margin:0 0 7px}
+    .nw-meta{display:flex;align-items:center;gap:9px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:8px}
+    .nw-tag{border:1px solid var(--line2);border-radius:6px;padding:2px 8px;letter-spacing:.04em;text-transform:uppercase;font-size:10px}
+    .nw-tag.mem{border-color:var(--orange);color:var(--orange2)}
+    .nw-blurb{font-size:13.5px;color:var(--text2);line-height:1.55;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin:0}
+    .nw-empty,.nw-err{color:var(--text2);padding:34px 0;font-size:14px}
+    .nw-err b{color:var(--red)}
+    .nw-foot{margin-top:26px;border-top:1px dashed var(--line);padding-top:12px;font-family:var(--mono);font-size:11px;color:var(--text3)}
+    @media (max-width:640px){ #page-news{padding-top:86px} .nw-ph-row{align-items:flex-start;flex-direction:column} }
+  </style>
+  <main id="page-news" hidden>
+    <div class="nw-pagehead">
+      <div class="wrap">
+        <div class="nw-ph-row">
+          <div>
+            <span class="eyebrow">Live industry feed</span>
+            <h1>RWA News</h1>
+            <p class="nw-sub">Everything moving in tokenization, pulled from ~31 sources and refreshed hourly. RWA Foundation members are flagged in orange.</p>
+          </div>
+          <span class="nw-status" id="nwStatus">connecting…</span>
+        </div>
+        <div class="nw-controls">
+          <label class="nw-search"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg><input id="nwQ" type="search" placeholder="Search headlines, sources, members" oninput="nwSetQ(this.value)"></label>
+          <div class="nw-chips" id="nwChips"></div>
+        </div>
+      </div>
+    </div>
+    <section class="section" style="padding-top:6px;padding-bottom:90px">
+      <div class="wrap">
+        <div class="nw-list" id="nwList"><div class="nw-empty">Loading the feed…</div></div>
+        <div class="nw-foot">Powered by the RWA News engine · deduped, classified and member-tagged automatically · headlines link to the original source.</div>
+      </div>
+    </section>
+  </main>
+  <script>
+  (function(){
+    "use strict";
+    var NW_URL="https://qrmbiestcjbedavsorrj.supabase.co";
+    var NW_KEY="sb_publishable_CVXI0w69QnHwJSJYtbiJdg_dtXg6ot_"; /* publishable key — read-only */
+    var NW={items:[],cat:"All",q:"",loadedAt:0,err:null};
+    var NW_TTL=10*60*1000;
+    function nq(s){return document.querySelector(s)}
+    function nesc(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#39;")}
+    function nfmt(v){var d=new Date(v);if(isNaN(d))return String(v).slice(0,10);return ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][d.getMonth()]+" "+d.getDate()}
+    function nwFetch(){
+      var cols="headline,url,source_name,source_domain,published_at,section,members,summary";
+      return fetch(NW_URL+"/rest/v1/items?select="+cols+"&order=published_at.desc&limit=100",
+        {headers:{apikey:NW_KEY,Authorization:"Bearer "+NW_KEY}})
+        .then(function(r){ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })
+        .then(function(rows){
+          NW.items=(rows||[]).filter(function(x){return x.headline&&x.url}).map(function(x){
+            return {t:x.headline,u:x.url,s:x.source_name||x.source_domain||"",d:x.published_at?nfmt(x.published_at):"",c:x.section||"News",m:Array.isArray(x.members)&&x.members.length?x.members.join(", "):null,b:x.summary||""};
+          });
+          NW.loadedAt=Date.now(); NW.err=null;
+        })
+        .catch(function(e){ NW.err=e.message||"network error"; });
+    }
+    function nwCats(){
+      var counts={};
+      NW.items.forEach(function(x){counts[x.c]=(counts[x.c]||0)+1});
+      var top=Object.keys(counts).sort(function(a,b){return counts[b]-counts[a]}).slice(0,7);
+      var cats=["All"].concat(top);
+      if(NW.items.some(function(x){return x.m})) cats.push("Members");
+      return cats;
+    }
+    function nwVisible(){
+      var q=NW.q.toLowerCase();
+      return NW.items.filter(function(x){
+        if(NW.cat==="Members"&&!x.m)return false;
+        if(NW.cat!=="All"&&NW.cat!=="Members"&&x.c!==NW.cat)return false;
+        if(q&&(x.t+" "+x.s+" "+(x.m||"")+" "+x.b).toLowerCase().indexOf(q)<0)return false;
+        return true;
+      });
+    }
+    function nwDraw(){
+      var chips=nq("#nwChips"), list=nq("#nwList"), st=nq("#nwStatus");
+      if(!chips||!list)return;
+      if(NW.err){
+        st.innerHTML="feed unavailable";
+        list.innerHTML='<div class="nw-err"><b>Couldn\'t reach the news engine</b> ('+nesc(NW.err)+'). <button class="btn btn-ghost btn-sm" onclick="nwReload()">Try again</button></div>';
+        chips.innerHTML=""; return;
+      }
+      if(!NW.items.length){ st.textContent="connecting…"; list.innerHTML='<div class="nw-empty">Loading the feed…</div>'; chips.innerHTML=""; return; }
+      st.innerHTML='<span class="dot">●</span> live · '+NW.items.length+' items';
+      chips.innerHTML=nwCats().map(function(c){
+        return '<button type="button" class="nw-chip'+(c===NW.cat?" on":"")+'" onclick="nwSetCat(\''+nesc(c).replace(/'/g,"\\'")+'\')">'+nesc(c)+'</button>';
+      }).join("");
+      var vis=nwVisible();
+      list.innerHTML=vis.length?vis.map(function(x){
+        return '<a class="nw-card" href="'+nesc(x.u)+'" target="_blank" rel="noopener">'+
+          '<div class="nw-meta"><span>'+nesc(x.s)+'</span><span>·</span><span>'+nesc(x.d)+'</span>'+
+          '<span class="nw-tag">'+nesc(x.c)+'</span>'+
+          (x.m?'<span class="nw-tag mem">Member · '+nesc(x.m)+'</span>':"")+'</div>'+
+          '<h3>'+nesc(x.t)+'</h3>'+
+          (x.b?'<p class="nw-blurb">'+nesc(x.b)+'</p>':"")+
+        '</a>';
+      }).join(""):'<div class="nw-empty">Nothing matches that filter this week.</div>';
+    }
+    window.nwSetCat=function(c){NW.cat=c;nwDraw()};
+    window.nwSetQ=function(v){NW.q=v||"";nwDraw()};
+    window.nwReload=function(){NW.err=null;NW.loadedAt=0;nwDraw();nwFetch().then(nwDraw)};
+    window.renderNewsPage=function(){
+      nwDraw();
+      if(Date.now()-NW.loadedAt>NW_TTL){ nwFetch().then(nwDraw); }
+    };
+  })();
+  </script>
   <!-- ================= PAGE: RWA JOB BOARD ================= -->
   <main id="page-jobs" hidden>
     <div class="jb-pagehead">
@@ -3636,8 +3762,10 @@ addEventListener('keydown',e=>{
 
 /* ---------- page router (home / foundation) ---------- */
 function showPage(p, anchor, fromRoute){
-  ['home','foundation','eco','articles','brandkit','meet','jobs','admin'].forEach(k=>{ const el=$('#page-'+k); if(el) el.hidden = k!==p; });
+  ['home','foundation','eco','articles','brandkit','meet','jobs','news','admin'].forEach(k=>{ const el=$('#page-'+k); if(el) el.hidden = k!==p; });
   if(p==='jobs' && window.renderJobs) renderJobs();
+  if(p==='jobs' && window.jbSync) jbSync();
+  if(p==='news' && window.renderNewsPage) renderNewsPage();
   if(p==='admin' && window.renderAdmin) renderAdmin();
   if(p==='eco') renderEcoPage();
   if(p!=='jobs' && window.jbPause) jbPause();
@@ -3664,8 +3792,8 @@ function showPage(p, anchor, fromRoute){
 function nav(anchor){ showPage('home', anchor); }
 
 /* ---------- deep links (#/ecosystem etc.) ---------- */
-const PAGE_ROUTES = {home:'', foundation:'foundation', eco:'ecosystem', articles:'articles', brandkit:'brand', meet:'meet', jobs:'jobs', admin:'admin'};
-const PAGE_FOR = {'home':'home','foundation':'foundation','eco':'eco','ecosystem':'eco','articles':'articles','brand':'brandkit','brandkit':'brandkit','meet':'meet','jobs':'jobs','careers':'jobs','admin':'admin'};
+const PAGE_ROUTES = {home:'', foundation:'foundation', eco:'ecosystem', articles:'articles', brandkit:'brand', meet:'meet', jobs:'jobs', news:'news', admin:'admin'};
+const PAGE_FOR = {'home':'home','foundation':'foundation','eco':'eco','ecosystem':'eco','articles':'articles','brand':'brandkit','brandkit':'brandkit','meet':'meet','jobs':'jobs','careers':'jobs','news':'news','admin':'admin'};
 const PAGE_TITLES = {
   home:'WALLY DAO · The world has a right to financial services',
   foundation:'The RWA Foundation · WALLY DAO',
@@ -3674,6 +3802,7 @@ const PAGE_TITLES = {
   brandkit:'Brand Kit · WALLY DAO',
   meet:'Meet WALLY · WALLY DAO',
   jobs:'RWA Job Board · WALLY DAO',
+  news:'RWA News · WALLY DAO',
   admin:'Console · WALLY DAO'
 };
 let SUPPRESS_ROUTE = false;
@@ -3972,10 +4101,32 @@ const JB_SEED=[
   desc:'The RWA Foundation is looking for another intern to help map the tokenization industry. You will track new projects for the ecosystem directory, research market data for reports and media, and support community programming across X Spaces, newsletters and events. You will work directly with the RWA Foundation team and touch every corner of the RWA economy. Curiosity about tokenized Real-World Assets matters more than years of experience.',
   apply:'happy@wallydao.xyz', member:1, featured:1, status:'live', ts:Date.parse('2026-07-18T12:00:00Z')}
 ];
+/* Remote board — the shared source of truth in the Wagecuck Supabase.
+   Public read via the read-only publishable key; writes go through /api/jobs. */
+let JB_REMOTE=[], JB_SYNCED=0;
+const JB_SB='https://qrmbiestcjbedavsorrj.supabase.co';
+const JB_ANON='sb_publishable_CVXI0w69QnHwJSJYtbiJdg_dtXg6ot_';
+function jbSync(force){
+  if(!force && Date.now()-JB_SYNCED<5*60*1000) return;
+  JB_SYNCED=Date.now();
+  fetch(JB_SB+'/rest/v1/wally_jobs?select=*&status=eq.live&hidden=is.false&order=ts.desc',
+    {headers:{apikey:JB_ANON,Authorization:'Bearer '+JB_ANON}})
+    .then(r=>r.ok?r.json():[])
+    .then(rows=>{
+      JB_REMOTE=(rows||[]).map(r=>({id:r.id,company:r.company,role:r.role,type:r.type||'Full time',
+        work:r.work||'Remote',location:r.location||'',comp:r.comp||'',tags:r.tags||[],
+        desc:r.description||'',apply:r.apply_to||'',member:r.member?1:0,featured:r.featured?1:0,
+        status:'live',ts:Date.parse(r.ts)||Date.now()}));
+      if(window.__page==='jobs'&&window.renderJobs) renderJobs(true);
+    }).catch(()=>{});
+}
 function jbAll(){
   const s=jbStore();
   const merge=j=>Object.assign({}, j, s.ovr[j.id]||{});
-  return JB_SEED.map(merge).concat(s.items.map(merge));
+  const remoteIds=new Set(JB_REMOTE.map(j=>j.id));
+  return JB_SEED.filter(j=>!remoteIds.has(j.id)).map(merge)
+    .concat(JB_REMOTE.map(merge))
+    .concat(s.items.filter(j=>!remoteIds.has(j.id)).map(merge));
 }
 function jbLive(){ return jbAll().filter(j=>j.status==='live' && !j.hidden); }
 function jbApplyHref(v){
@@ -4087,6 +4238,10 @@ function submitJob(){
     location:loc, comp:pjVal('pjComp'), tags:pjVal('pjTags').split(',').map(t=>t.trim()).filter(Boolean).slice(0,4),
     desc:desc, apply:apply, email:email, member:$('#pjMember').checked?1:0, featured:0, status:'pending', src:'site', ts:Date.now() };
   const s=jbStore(); s.items.push(item); jbSaveStore(s);
+  try{ fetch('/api/jobs',{method:'POST',headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({action:'submit',job:{company:co,role:role,type:item.type,work:item.work,
+      location:loc,comp:item.comp,tags:item.tags,description:desc,apply_to:apply,email:email,member:item.member}})
+  }).catch(function(){}); }catch(e){}
   const body='New job listing for the RWA Job Board\n\nCompany: '+co+'\nRole: '+role+'\nType: '+item.type+' · '+item.work+'\nLocation: '+loc+'\nCompensation: '+(item.comp||'Not shared')+'\nTags: '+(item.tags.join(', ')||'None')+'\nApply: '+apply+'\nContact: '+email+'\nRWA Foundation member: '+(item.member?'Yes':'No')+'\n\nAbout the role:\n'+desc;
   const mail='mailto:zeus@wallydao.xyz?subject='+encodeURIComponent('Job listing: '+role+' at '+co)+'&body='+encodeURIComponent(body);
   $('#postJobForm').hidden=true;
