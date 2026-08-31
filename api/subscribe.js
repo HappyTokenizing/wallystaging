@@ -25,7 +25,7 @@ export default async function handler(req, res) {
         utm_source: 'wally',
         utm_medium: 'website',
         utm_campaign: 'heard_from_the_herd',
-        referring_site: 'https://wallystaging.vercel.app'
+        referring_site: 'https://rwaf.xyz'
       })
     });
     if (!r.ok) {
