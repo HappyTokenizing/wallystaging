@@ -1,19 +1,20 @@
-/* trailer.js — the 32-second social trailer for Wally's RWA Textbook.
-   Built on the film's own toolkit (guide/film: kit, icons, Wally rig, engine), so every frame is
-   the real art. Pure function of time: TRAILER.renderAt(t) draws any frame in any order.
-   Formats: 9x16 (Reels / TikTok / Shorts), 16x9 (X / YouTube), 1x1 (feed). The short side is
-   always 1080 logical px; layouts pick per-format positions with pk(port, land, square).
-   Music (music.py) is 120 BPM: one beat = 0.5 s, and every cut lands on a beat. */
+/* trailer.js — "WALLY. Eau de Due Diligence." A 32-second luxury-ad style trailer for Wally's RWA Textbook.
+   Dark frames, gold rim light, film grain, slow push-ins, text that resolves out of a blur. Built on the
+   film's own toolkit (guide/film: kit, icons, Wally rig, engine), so every frame uses the real art and every
+   line of book copy comes from the book's data. Pure function of time: TRAILER.renderAt(t) draws any frame.
+   Formats: 9x16 (Reels / TikTok / Shorts), 16x9 (X / YouTube, letterboxed), 1x1 (feed). The short side is
+   always 1080 logical px; layouts pick per-format values with pk(port, land, square).
+   Music (music.py) is 90 BPM: one beat = 2/3 s, one bar = 8/3 s, and every cut lands on a beat. */
 (function () {
   const K = window.K, C = K.C, E = K.E, I = window.I, R = window.WallyRig;
-  const B = 0.5, DUR = 32;
+  const B = 2 / 3, DUR = 32;
   const FORMATS = { '9x16': [1080, 1920], '16x9': [1920, 1080], '1x1': [1080, 1080] };
   const TL = window.TL;
   const LESSON = {}; TL.scenes.forEach((s) => { if (s.kind === 'lesson') LESSON[s.lesson] = s; });
-  const SCENE = {}; TL.scenes.forEach((s) => { SCENE[s.id] = s; });
+  const GOLD = '#D4AF6A', GOLD2 = '#F1D9A2', CREAM = '#F3EBDD', DIM = 'rgba(243,235,221,.62)', NIGHT = '#070605';
 
-  let cv, ctx, W, H, FMT, filmCv;
-  const MASCOT = {};
+  let cv, ctx, W, H, filmCv, bufA, bufB, pageCv;
+  const grain = [], MASCOT = {};
 
   // ------------------------------------------------------------------ helpers
   const pk = (S, p, l, s) => (S.port ? p : S.land ? l : s === undefined ? p : s);
@@ -24,382 +25,143 @@
     if (!(key in fitCache)) fitCache[key] = K.fitSize(c, s, maxW, o);
     return fitCache[key];
   }
-  // heavy display line with an optional hard offset shadow (sticker look)
-  function heavy(c, s, x, y, o) {
-    const f = o.f || 'display', w = o.w || 900, st = o.st || 'normal', a = o.a || 'center';
-    const size = o.maxW ? Math.min(o.s, fit(c, s, o.maxW, { f, s: o.s, w, st, ls: o.ls })) : o.s;
-    if (o.shadow) K.txt(c, s, x + o.shadow, y + o.shadow, { f, s: size, w, st, c: o.sc || C.ink, a, ls: o.ls });
-    K.txt(c, s, x, y, { f, s: size, w, st, c: o.c || C.ink, a, ls: o.ls });
+  function canvas(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; return c; }
+  // resolve out of a blur: fade, rise and sharpen over d seconds starting at local time a
+  function reveal(c, lt, a, d, draw, o = {}) {
+    const p = clamp((lt - a) / d); if (p <= 0) return;
+    const out = o.out !== undefined ? clamp((lt - o.out) / (o.outD || 0.4)) : 0; if (out >= 1) return;
+    const e = E.outCubic(p), bl = (1 - e) * (o.blur || 14) + out * 10;
+    c.save(); c.globalAlpha *= e * (1 - out); if (bl > 0.3) c.filter = `blur(${bl.toFixed(1)}px)`;
+    c.translate(0, (1 - e) * (o.rise === undefined ? 24 : o.rise)); draw(e); c.restore();
+  }
+  // gold gradient fill with a travelling specular highlight (sweep 0..1 across the text)
+  function goldFill(c, x0, x1, sweep = -1) {
+    const g = c.createLinearGradient(x0, 0, x1, 0);
+    if (sweep > 0 && sweep < 1) {
+      const s = clamp(sweep, 0.07, 0.93);
+      g.addColorStop(0, '#8C6A2F'); g.addColorStop(s - 0.07, '#CDA75F'); g.addColorStop(s, '#FFF6DE'); g.addColorStop(s + 0.07, '#CDA75F'); g.addColorStop(1, '#9C7634');
+    } else { g.addColorStop(0, '#8C6A2F'); g.addColorStop(0.35, '#D4AF6A'); g.addColorStop(0.65, '#E9C987'); g.addColorStop(1, '#9C7634'); }
+    return g;
+  }
+  function goldText(c, s, x, y, o) {
+    const f = o.f || 'display', w = o.w || 300, st = o.st || 'expanded', ls = o.ls || 0, a = o.a || 'center';
+    let size = o.s; if (o.maxW) size = Math.min(size, fit(c, s, o.maxW, { f, s: size, w, st, ls }));
+    const tw = K.measure(c, s, { f, s: size, w, st, ls }), x0 = a === 'center' ? x - tw / 2 : a === 'right' ? x - tw : x;
+    K.font(c, f, size, w, o.i, st); K.track(c, ls); c.textAlign = a; c.textBaseline = 'alphabetic';
+    if (o.glow) { c.save(); c.shadowColor = 'rgba(212,175,106,.55)'; c.shadowBlur = o.glow; c.fillStyle = '#C9A45C'; c.fillText(s, x, y); c.restore(); }
+    c.fillStyle = goldFill(c, x0, x0 + tw, o.sweep === undefined ? -1 : o.sweep); c.fillText(s, x, y); K.track(c, 0);
     return size;
   }
-  // slam-in transform: scale from `from` to 1 with an expo ease, starting at local time a
-  function slam(c, lt, a, x, y, draw, o = {}) {
-    if (lt < a) return;
-    const p = clamp((lt - a) / (o.d || 0.2)), s = lerp(o.from || 1.7, 1, E.outExpo(p));
-    c.save(); c.translate(x, y); c.scale(s, s); c.rotate(o.rot || 0); c.globalAlpha *= clamp(p * 5); draw(); c.restore();
+  function line(c, s, x, y, o = {}) {
+    const st = Object.assign({ f: 'serif', s: 60, w: 400, i: true, c: CREAM, a: 'center' }, o);
+    if (o.maxW) st.s = Math.min(st.s, fit(c, s, o.maxW, { f: st.f, s: st.s, w: st.w, i: st.i }));
+    K.txt(c, s, x, y, st);
   }
-  function popAt(c, lt, a, x, y, draw, d = 0.3) {
-    const p = K.pop(lt, a, d); if (p <= 0) return;
-    c.save(); c.translate(x, y); c.scale(p, p); draw(); c.restore();
-  }
-  function noSign(c, x, y, r, p) {
-    if (p <= 0) return; const s = lerp(1.8, 1, E.outCubic(clamp(p)));
-    c.save(); c.translate(x, y); c.scale(s, s); c.globalAlpha *= clamp(p * 3); c.lineWidth = r * 0.17; c.strokeStyle = C.red; c.lineCap = 'round';
-    c.beginPath(); c.arc(0, 0, r, 0, 7); c.stroke(); c.beginPath(); c.moveTo(-r * 0.7, -r * 0.7); c.lineTo(r * 0.7, r * 0.7); c.stroke(); c.restore();
-  }
-  // centred handwritten line(s), revealed left->right like a pen
-  function hand(c, s, cx, y, o) {
-    const size = o.s, lines = o.maxW ? K.wrap(c, s, o.maxW, { f: 'hand', s: size, w: 700 }) : [s], lh = size * 1.0;
-    const p = o.p === undefined ? 1 : o.p; if (p <= 0) return lines.length * lh;
-    let w = 0; for (const l of lines) w = Math.max(w, K.measure(c, l, { f: 'hand', s: size, w: 700 }));
-    const total = lines.length; const per = 1 / total;
-    lines.forEach((l, i) => {
-      const lp = clamp((p - i * per) / per); if (lp <= 0) return;
-      const lw = K.measure(c, l, { f: 'hand', s: size, w: 700 }), x0 = cx - lw / 2, yy = y + i * lh;
-      c.save(); c.beginPath(); c.rect(x0 - 20, yy - size, (lw + 40) * lp, size * 1.4); c.clip();
-      K.txt(c, l, cx, yy, { f: 'hand', s: size, w: 700, c: o.c || C.orange, a: 'center' }); c.restore();
-    });
-    return lines.length * lh;
-  }
-  function emoji(c, e, x, y, s) { K.txt(c, e, x, y, { f: 'emoji', s, a: 'center', b: 'middle' }); }
-  function wally(c, pose) { R.draw(c, pose); }
+  function caps(c, s, x, y, o = {}) { K.txt(c, s, x, y, { f: 'mono', s: o.s || 24, w: o.w || 500, c: o.c || DIM, a: o.a || 'center', ls: o.ls === undefined ? 10 : o.ls }); }
 
-  // ------------------------------------------------------------------ backgrounds
-  function bgPaper(c) { c.drawImage(K.paper(W, H), 0, 0); }
-  function bgDark(c) { c.drawImage(K.paper(W, H, '#1C150F', 9), 0, 0); }
-  function rays(c, x, y, t, col, n = 22) {
-    const R0 = Math.hypot(W, H); c.save(); c.translate(x, y); c.rotate(t * 0.12); c.fillStyle = col;
-    for (let k = 0; k < n; k++) { const a = (k / n) * Math.PI * 2, d = Math.PI / n; c.beginPath(); c.moveTo(0, 0); c.lineTo(Math.cos(a - d / 2) * R0, Math.sin(a - d / 2) * R0); c.lineTo(Math.cos(a + d / 2) * R0, Math.sin(a + d / 2) * R0); c.closePath(); c.fill(); }
+  // ------------------------------------------------------------------ atmosphere
+  function bgNight(c, S, x = S.cx, y = S.cy) {
+    c.fillStyle = NIGHT; c.fillRect(0, 0, W, H);
+    const g = c.createRadialGradient(x, y, 0, x, y, Math.max(W, H) * 0.7);
+    g.addColorStop(0, '#2A1F14'); g.addColorStop(0.45, '#130E09'); g.addColorStop(1, '#050403'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+  }
+  function haze(c, S, a = 1) {
+    c.save(); c.globalCompositeOperation = 'screen';
+    for (let i = 0; i < 4; i++) {
+      const x = W * (0.2 + 0.6 * K.hash(i + 3)) + Math.sin(S.t * 0.25 + i * 2) * W * 0.15, y = H * (0.25 + 0.5 * K.hash(i + 9)) + Math.cos(S.t * 0.2 + i) * H * 0.06, r = Math.max(W, H) * (0.35 + 0.2 * K.hash(i));
+      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(160,120,80,${0.07 * a})`); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
+    }
     c.restore();
   }
-  function bgOrange(c, S, x, y) {
-    c.fillStyle = C.orange; c.fillRect(0, 0, W, H);
-    rays(c, x === undefined ? S.cx : x, y === undefined ? S.cy : y, S.t, 'rgba(255,170,90,.22)');
-    const g = c.createRadialGradient(S.cx, S.cy, Math.min(W, H) * 0.3, S.cx, S.cy, Math.hypot(W, H) * 0.6);
-    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, 'rgba(120,30,0,.35)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-  }
-  function bgNeon(c, S) {
-    c.fillStyle = '#07030D'; c.fillRect(0, 0, W, H);
-    const blob = (x, y, r, col) => { const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, col); g.addColorStop(1, 'rgba(0,0,0,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H); };
-    blob(W * 0.2, H * 0.25, Math.max(W, H) * 0.55, 'rgba(255,46,154,.38)');
-    blob(W * 0.85, H * 0.7, Math.max(W, H) * 0.55, 'rgba(138,92,255,.40)');
-    // synthwave floor grid
-    const hz = H * 0.62; c.save(); c.beginPath(); c.rect(0, hz, W, H - hz); c.clip();
-    c.strokeStyle = 'rgba(37,232,255,.45)'; c.lineWidth = 2.5;
-    for (let k = -14; k <= 14; k++) { c.beginPath(); c.moveTo(S.cx + k * 40, hz); c.lineTo(S.cx + k * 420, H); c.stroke(); }
-    for (let k = 0; k < 14; k++) { const u = ((k + (S.t * 2.4) % 1) / 14), y = hz + Math.pow(u, 2.2) * (H - hz); c.globalAlpha = u; c.beginPath(); c.moveTo(0, y); c.lineTo(W, y); c.stroke(); }
+  function bokeh(c, S, n = 34, a = 1) {
+    c.save(); c.globalCompositeOperation = 'screen';
+    for (let i = 0; i < n; i++) {
+      const sp = 0.015 + K.hash(i * 3.1) * 0.04, r = 6 + K.hash(i * 7.7) * 34;
+      const x = K.hash(i * 1.3) * W + Math.sin(S.t * 0.4 + i) * 30, y = H + 100 - ((K.hash(i * 5.9) + S.t * sp) % 1) * (H + 200);
+      const al = (0.06 + 0.18 * K.hash(i * 2.2)) * a * (0.6 + 0.4 * Math.sin(S.t * 1.3 + i));
+      const g = c.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, `rgba(241,200,130,${al})`); g.addColorStop(0.7, `rgba(241,200,130,${al * 0.6})`); g.addColorStop(1, 'rgba(241,200,130,0)');
+      c.fillStyle = g; c.beginPath(); c.arc(x, y, r, 0, 7); c.fill();
+    }
     c.restore();
   }
-  function scanlines(c, a = 0.18) { c.save(); c.fillStyle = `rgba(0,0,0,${a})`; for (let y = 0; y < H; y += 6) c.fillRect(0, y, W, 2); c.restore(); }
-  function neonText(c, s, x, y, size, col, o = {}) {
-    const st = o.st || 'condensed';
-    size = Math.min(size, fit(c, s, o.maxW || W * 0.9, { f: 'display', s: size, w: 900, st }));
-    c.save();
-    c.globalCompositeOperation = 'lighter';
-    K.txt(c, s, x - 7, y, { f: 'display', s: size, w: 900, st, c: 'rgba(37,232,255,.75)', a: 'center' });
-    K.txt(c, s, x + 7, y + 2, { f: 'display', s: size, w: 900, st, c: 'rgba(255,46,154,.75)', a: 'center' });
-    c.globalCompositeOperation = 'source-over';
-    c.shadowColor = col; c.shadowBlur = 50;
-    K.txt(c, s, x, y, { f: 'display', s: size, w: 900, st, c: col, a: 'center' });
-    c.shadowBlur = 0; c.globalAlpha *= 0.55;
-    K.txt(c, s, x, y, { f: 'display', s: size, w: 900, st, c: '#FFFFFF', a: 'center' });
+  function leak(c, S, a = 1) {
+    c.save(); c.globalCompositeOperation = 'screen';
+    const x = W * (0.85 + 0.15 * Math.sin(S.t * 0.35)), y = H * (0.1 + 0.1 * Math.cos(S.t * 0.3));
+    const g = c.createRadialGradient(x, y, 0, x, y, Math.max(W, H) * 0.75); g.addColorStop(0, `rgba(255,140,50,${0.22 * a})`); g.addColorStop(0.5, `rgba(255,98,0,${0.06 * a})`); g.addColorStop(1, 'rgba(0,0,0,0)');
+    c.fillStyle = g; c.fillRect(0, 0, W, H); c.restore();
+  }
+  function grade(c, S) { // warm soft-light tint, vignette, film grain, letterbox
+    c.save(); c.globalCompositeOperation = 'soft-light'; c.fillStyle = 'rgba(255,170,90,.16)'; c.fillRect(0, 0, W, H); c.restore();
+    const v = c.createRadialGradient(S.cx, S.cy, Math.min(W, H) * 0.35, S.cx, S.cy, Math.hypot(W, H) * 0.62); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.72)');
+    c.fillStyle = v; c.fillRect(0, 0, W, H);
+    const fr = Math.floor(S.t * 24), gi = grain[fr % grain.length], ox = Math.floor(K.hash(fr + 1) * 256), oy = Math.floor(K.hash(fr + 7) * 256);
+    c.save(); c.globalCompositeOperation = 'overlay'; c.globalAlpha = 0.45;
+    for (let y = -oy; y < H; y += 512) for (let x = -ox; x < W; x += 512) c.drawImage(gi, x, y);
     c.restore();
+    if (S.land) { c.fillStyle = '#000'; c.fillRect(0, 0, W, 130); c.fillRect(0, H - 130, W, 130); }
   }
 
-  // ------------------------------------------------------------------ Tokens, Please mascots (from guide/game.js)
-  const COLORS = { tbill: ['#3E9E6B', '#2C7A51'], gold: ['#E7B43C', '#B98A1E'] };
-  function mascotSVG(kind, mood) {
-    const [face, rim] = COLORS[kind] || ['#FF6200', '#C44A00'];
-    const ink = '#201A13';
-    let eyes = '', mouth = '', extra = '';
-    if (mood === 'smug') { eyes = `<path d="M70 92 h20 M110 92 h20" stroke="${ink}" stroke-width="7" stroke-linecap="round"/><path d="M66 82 q12 -6 24 -2 M110 80 q12 -4 24 2" stroke="${ink}" stroke-width="5" fill="none" stroke-linecap="round"/>`; mouth = `<path d="M78 124 q24 16 46 -6" stroke="${ink}" stroke-width="7" fill="none" stroke-linecap="round"/>`; }
-    else if (mood === 'happy') { eyes = `<path d="M70 96 q10 -14 20 0 M110 96 q10 -14 20 0" stroke="${ink}" stroke-width="7" fill="none" stroke-linecap="round"/>`; mouth = `<path d="M72 118 q28 30 56 0 z" fill="${ink}"/>`; }
-    else if (mood === 'worried') { eyes = `<ellipse cx="80" cy="94" rx="7" ry="10" fill="${ink}"/><ellipse cx="120" cy="94" rx="7" ry="10" fill="${ink}"/><path d="M66 80 l20 6 M134 80 l-20 6" stroke="${ink}" stroke-width="5" stroke-linecap="round"/>`; mouth = `<path d="M74 128 q8 -8 16 0 t16 0 t16 0" stroke="${ink}" stroke-width="6" fill="none" stroke-linecap="round"/>`; extra = `<path d="M150 64 q10 18 0 26 q-10 -8 0 -26 z" fill="#7FC4F5" stroke="${ink}" stroke-width="3"/>`; }
-    else { eyes = `<ellipse cx="80" cy="94" rx="7" ry="10" fill="${ink}"/><ellipse cx="120" cy="94" rx="7" ry="10" fill="${ink}"/>`; mouth = `<path d="M80 122 q20 14 40 0" stroke="${ink}" stroke-width="7" fill="none" stroke-linecap="round"/>`; }
-    const hats = {
-      gold: `<path d="M58 50 l8 -36 l20 20 l14 -26 l14 26 l20 -20 l8 36 z" fill="#FFD84D" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/>`,
-      tbill: `<path d="M56 48 q44 -40 88 0 z" fill="#2E4A3A" stroke="${ink}" stroke-width="5"/><rect x="40" y="44" width="120" height="9" rx="4.5" fill="#2E4A3A" stroke="${ink}" stroke-width="4"/>`,
-    };
+  // Wally with a gold rim light and a moody key from (lx, ly) (drawn through two offscreen buffers)
+  function litWally(c, pose, o = {}) {
+    const a = bufA.getContext('2d'), b = bufB.getContext('2d');
+    a.setTransform(1, 0, 0, 1, 0, 0); a.globalCompositeOperation = 'source-over'; a.clearRect(0, 0, W, H); R.draw(a, pose);
+    b.setTransform(1, 0, 0, 1, 0, 0); b.globalCompositeOperation = 'source-over'; b.clearRect(0, 0, W, H); b.drawImage(bufA, 0, 0);
+    b.globalCompositeOperation = 'source-in'; b.fillStyle = o.rim || '#F2C77C'; b.fillRect(0, 0, W, H); b.globalCompositeOperation = 'source-over';
+    a.globalCompositeOperation = 'source-atop';
+    const lx = o.lx === undefined ? -0.6 : o.lx, ly = o.ly === undefined ? -0.8 : o.ly, cx = o.cx || W / 2, cy = o.cy || H / 2, L = o.L || Math.max(W, H) * 0.6;
+    const g = a.createLinearGradient(cx + lx * L, cy + ly * L, cx - lx * L, cy - ly * L);
+    g.addColorStop(0, 'rgba(255,190,110,.10)'); g.addColorStop(0.45, 'rgba(10,6,2,.30)'); g.addColorStop(1, `rgba(5,3,1,${o.dark === undefined ? 0.82 : o.dark})`);
+    a.fillStyle = g; a.fillRect(0, 0, W, H); a.globalCompositeOperation = 'source-over';
+    c.save(); c.globalAlpha *= o.rimA === undefined ? 0.85 : o.rimA; c.filter = `blur(${o.rimBlur || 10}px)`; c.drawImage(bufB, lx * (o.rimOff || 9), ly * (o.rimOff || 9)); c.restore();
+    c.drawImage(bufA, 0, 0);
+  }
+
+  // ------------------------------------------------------------------ Tokens, Please mascot (from guide/game.js)
+  function mascotSVG(mood) {
+    const face = '#E7B43C', rim = '#B98A1E', ink = '#201A13';
+    const eyes = mood === 'worried' ? `<ellipse cx="80" cy="94" rx="7" ry="10" fill="${ink}"/><ellipse cx="120" cy="94" rx="7" ry="10" fill="${ink}"/><path d="M66 80 l20 6 M134 80 l-20 6" stroke="${ink}" stroke-width="5" stroke-linecap="round"/>`
+      : `<path d="M70 92 h20 M110 92 h20" stroke="${ink}" stroke-width="7" stroke-linecap="round"/><path d="M66 82 q12 -6 24 -2 M110 80 q12 -4 24 2" stroke="${ink}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+    const mouth = mood === 'worried' ? `<path d="M74 128 q8 -8 16 0 t16 0 t16 0" stroke="${ink}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M150 64 q10 18 0 26 q-10 -8 0 -26 z" fill="#7FC4F5" stroke="${ink}" stroke-width="3"/>`
+      : `<path d="M78 124 q24 16 46 -6" stroke="${ink}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
     return `<svg viewBox="0 0 200 230" width="400" height="460" xmlns="http://www.w3.org/2000/svg">
       <path d="M78 186 v26 h-14 M122 186 v26 h14" stroke="${ink}" stroke-width="8" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
       <path d="M36 112 q-22 12 -10 34 M164 112 q22 12 10 34" stroke="${ink}" stroke-width="8" fill="none" stroke-linecap="round"/>
       <ellipse cx="100" cy="112" rx="72" ry="76" fill="${rim}" stroke="${ink}" stroke-width="7"/>
       <circle cx="100" cy="104" r="70" fill="${face}" stroke="${ink}" stroke-width="7"/>
       <circle cx="100" cy="104" r="54" fill="none" stroke="rgba(32,26,19,.25)" stroke-width="4"/>
-      ${eyes}${mouth}${extra}${hats[kind] || ''}</svg>`;
+      ${eyes}${mouth}<path d="M58 50 l8 -36 l20 20 l14 -26 l14 26 l20 -20 l8 36 z" fill="#FFD84D" stroke="${ink}" stroke-width="5" stroke-linejoin="round"/></svg>`;
   }
   function loadMascots() {
-    const jobs = [];
-    for (const kind of ['gold', 'tbill']) for (const mood of ['smug', 'calm', 'happy', 'worried']) {
-      const im = new Image(); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(mascotSVG(kind, mood));
-      MASCOT[kind + '/' + mood] = im; jobs.push(im.decode());
-    }
-    return Promise.all(jobs);
-  }
-  function mascot(c, kind, mood, x, y, h) { const im = MASCOT[kind + '/' + mood]; if (im) c.drawImage(im, x - h * 0.435, y - h, h * 0.87, h); }
-
-  // ================================================================== SHOTS
-  // 0–2  cold open: the shill ad everybody has seen
-  function shotNeon(c, S) {
-    const lt = Math.min(S.lt, 1.9); // the last frames freeze (record scratch)
-    bgNeon(c, S);
-    const k = Math.min(3, Math.floor(lt / B)), u = lt - k * B;
-    const z = 1 + u * 0.14, jit = u < 0.06 ? (K.hash(k * 7 + Math.floor(S.t * 60)) - 0.5) * 40 : 0;
-    const sz = pk(S, 1, 0.82, 0.78), cx = S.cx, cy = S.cy - pk(S, 60, 30, 20);
-    c.save(); c.translate(cx + jit, cy); c.scale(z, z); c.translate(-cx, -cy);
-    if (k === 0) { emoji(c, '🚀', cx, cy - 330 * sz, 230 * sz); neonText(c, '100x', cx, cy + 90 * sz, 380 * sz, C.neonPink); neonText(c, 'RWA GEM', cx, cy + 250 * sz, 150 * sz, C.neonCyan); }
-    if (k === 1) { neonText(c, 'NOT FINANCIAL', cx, cy - 40 * sz, 150 * sz, C.neonYellow); neonText(c, 'ADVICE. BUT…', cx, cy + 130 * sz, 150 * sz, C.neonPink); }
-    if (k === 2) {
-      c.save(); c.shadowColor = C.neonLime; c.shadowBlur = 60; I.chartUp(c, cx, cy - 140 * sz, 420 * sz, { p: clamp(u / 0.3) }); c.restore();
-      neonText(c, 'WAGMI', cx, cy + 260 * sz, 260 * sz, C.neonLime);
-    }
-    if (k === 3) { emoji(c, '🤞', cx, cy - 330 * sz, 220 * sz); neonText(c, 'TRUST', cx, cy + 20 * sz, 250 * sz, C.neonCyan); neonText(c, 'ME BRO', cx, cy + 230 * sz, 250 * sz, C.neonPink); }
-    c.restore();
-    // ticker tape
-    const ty = pk(S, H - 470, H - 70, H - 70), tape = '$RWA ▲ 4,269%   $MOON ▲ 900%   $HOPE ▲ ∞   $WAGMI ▲ 1,337%   $REKT ▼ 99%   ';
-    c.fillStyle = 'rgba(0,0,0,.75)'; c.fillRect(0, ty - 38, W, 76); c.fillStyle = C.neonPink; c.fillRect(0, ty - 40, W, 3); c.fillRect(0, ty + 37, W, 3);
-    const tw = K.measure(c, tape, { f: 'mono', s: 34, w: 700 }); let x0 = -((lt * 520) % tw);
-    for (; x0 < W; x0 += tw) K.txt(c, tape, x0, ty + 12, { f: 'mono', s: 34, w: 700, c: C.neonLime });
-    // sponsored chip
-    K.chip(c, 'SPONSORED · TRUST ME', S.cx, pk(S, 300, 80, 70), { s: 24, fill: 'rgba(255,255,255,.12)', c: '#FFFFFF', a: 'center', stroke: 'rgba(255,255,255,.35)', lw: 2 });
-    scanlines(c);
-    // glitch tear on the way out
-    if (S.lt > 1.8) {
-      const r = K.rand(Math.floor(S.t * 60)); c.save();
-      for (let i = 0; i < 9; i++) { const y = r() * H, h = 8 + r() * 60; c.fillStyle = [C.neonPink, C.neonCyan, '#000', C.neonLime][i % 4]; c.globalAlpha = 0.6; c.fillRect((r() - 0.5) * 80, y, W, h); }
-      c.restore();
-    }
+    return Promise.all(['smug', 'worried'].map((m) => { const im = new Image(); im.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(mascotSVG(m)); MASCOT[m] = im; return im.decode(); }));
   }
 
-  // 2–3.85  "Most RWA content is a chart and a promise." -> two NO stamps
-  function shotPromise(c, S) {
-    const lt = S.lt; bgPaper(c);
-    const fs = pk(S, 88, 84, 66), ty = pk(S, 560, 230, 200);
-    K.words(c, 'Most RWA content is', S.cx, ty, { f: 'serif', s: fs, w: 700, a: 'center', maxW: W - 120, t: lt - 0.02, per: 0.06, fd: 0.25 });
-    const iy = pk(S, 940, 560, 530), dx = pk(S, 250, 330, 230), isz = pk(S, 300, 300, 240), icx = S.cx + pk(S, 0, 140, 0);
-    popAt(c, lt, 0.5, icx - dx, iy, () => I.chartUp(c, 0, 0, isz, { p: clamp((lt - 0.5) / 0.3) }));
-    if (lt > 0.75) K.txt(c, '+', icx, iy + 30, { f: 'display', s: 110, w: 900, c: C.ink3, a: 'center', alpha: clamp((lt - 0.75) * 6) });
-    popAt(c, lt, 1.0, icx + dx, iy, () => { c.rotate(Math.sin(S.t * 6) * 0.07); emoji(c, '🤞', 0, 10, isz * 0.8); });
-    const ly = iy + isz * 0.5 + 70;
-    if (lt > 0.6) hand(c, 'a chart', icx - dx, ly, { s: 64, c: C.ink2, p: clamp((lt - 0.6) / 0.25) });
-    if (lt > 1.1) hand(c, 'a promise', icx + dx, ly, { s: 64, c: C.ink2, p: clamp((lt - 1.1) / 0.25) });
-    noSign(c, icx - dx, iy, isz * 0.62, (lt - 1.5) / 0.15);
-    noSign(c, icx + dx, iy, isz * 0.62, (lt - 1.625) / 0.15);
-    // Wally: deadpan, then a slow head-shake
-    const sh = lt > 1.45 ? Math.sin((lt - 1.45) * 16) * 0.09 * Math.exp(-(lt - 1.45) * 1.5) : 0;
-    const wp = pk(S, { x: S.cx, y: H - 300, s: 0.62 }, { x: 330, y: 1040, s: 0.82 }, { x: 140, y: 1070, s: 0.3 });
-    wally(c, { x: wp.x, y: wp.y, s: wp.s, headRot: sh, trunk: { bend: Math.sin(S.t * 2) * 0.12 + sh * 2 }, earL: Math.abs(sh), earR: Math.abs(sh) });
-  }
-
-  // 3.85–6  the cover slams down on the drop: "This is a textbook."
-  function shotTextbook(c, S) {
-    const lt = S.lt, L = 0.15; bgPaper(c);
-    const cp = pk(S, { x: S.cx, y: 1100, w: 520 }, { x: 1360, y: 560, w: 470 }, { x: S.cx, y: 690, w: 370 });
-    c.save(); c.globalAlpha = 0.6; rays(c, cp.x, cp.y, S.t, 'rgba(255,98,0,.10)'); c.restore();
-    let y = cp.y, rot = -0.05;
-    if (lt < L) { const u = E.inCubic(clamp(lt / L)); y = lerp(-cp.w * 0.8, cp.y, u); rot = lerp(-0.35, -0.05, u); }
-    else { const u = lt - L; y = cp.y - Math.abs(Math.sin(u * 16)) * 26 * Math.exp(-u * 8); }
-    K.cover(c, cp.x, y, cp.w, { rot, t: S.t });
-    const d = lt - L;
-    if (d > 0 && d < 0.8) { c.save(); for (let k = 0; k < 12; k++) { const dir = k % 2 ? 1 : -1, sp = 160 + 120 * K.hash(k); c.globalAlpha = 0.5 * (1 - d / 0.8); c.fillStyle = '#CFC6B4'; c.beginPath(); c.arc(cp.x + dir * (cp.w * 0.55 + d * sp), cp.y + cp.w * 0.62 - d * 90 * K.hash(k + 4), 18 + d * 50, 0, 7); c.fill(); } c.restore(); }
-    // headline
-    const tx = pk(S, S.cx, 140, S.cx), a = pk(S, 'center', 'left', 'center'), fs = pk(S, 112, 128, 92);
-    const y1 = pk(S, 380, 450, 190), y2 = pk(S, 510, 600, 300);
-    slam(c, lt, L, tx, y1, () => K.txt(c, 'This is a', 0, 0, { f: 'serif', s: fs, w: 700, a }), { from: 1.4 });
-    slam(c, lt, L + 0.5, tx, y2, () => K.txt(c, 'textbook.', 0, 0, { f: 'serif', s: fs * 1.12, w: 700, i: true, c: C.orange, a }), { from: 1.6 });
-    const tw = K.measure(c, 'textbook.', { f: 'serif', s: fs * 1.12, w: 700, i: true });
-    const sx = a === 'center' ? tx - tw / 2 : tx;
-    K.scribble(c, sx, y2 + 30, tw, clamp((lt - L - 0.85) / 0.3), { lw: 9, amp: 5 });
-    // Wally slides in to vouch for it
-    const wq = E.outBack(clamp((lt - L - 1.0) / 0.35), 1.4);
-    if (wq > 0) {
-      const wp = pk(S, { x: W - 150, y: H - 300, s: 0.42 }, { x: 1760, y: 1010, s: 0.5 }, { x: W - 110, y: 1060, s: 0.32 });
-      wally(c, { x: lerp(W + 260, wp.x, wq), y: wp.y, s: wp.s, rot: -0.06, trunk: { bend: -0.5, lift: 0.6, curl: 0.3 }, sparkle: lt > L + 1.5 ? Math.sin(clamp((lt - L - 1.5) / 0.4) * Math.PI) : 0 });
-    }
-  }
-
-  // 6–8  NO PRICE CALLS. / NO HOPIUM.
-  function shotNo(c, S) {
-    const lt = S.lt, second = lt >= 1, u = second ? lt - 1 : lt;
-    if (!second) bgOrange(c, S); else { bgDark(c); c.save(); c.globalAlpha = 0.5; rays(c, S.cx, S.cy, S.t, 'rgba(255,98,0,.08)'); c.restore(); }
-    const lines = second ? ['NO', 'HOPIUM.'] : ['NO PRICE', 'CALLS.'];
-    const col = second ? C.orange : '#FFFFFF', sc = second ? '#000000' : C.ink;
-    const fs = pk(S, 210, 230, 190), y1 = pk(S, 720, 380, 380), y2 = y1 + fs * 0.98;
-    const tx = pk(S, S.cx, 130, S.cx), a = pk(S, 'center', 'left', 'center'), mw = pk(S, W - 110, 1060, W - 110);
-    slam(c, u, 0, tx, y1, () => heavy(c, lines[0], 0, 0, { s: fs, c: col, a, shadow: 10, sc, maxW: mw }));
-    slam(c, u, 0.125, tx, y2, () => heavy(c, lines[1], 0, 0, { s: fs, c: col, a, shadow: 10, sc, maxW: mw }));
-    const ip = pk(S, { x: S.cx, y: 1280, s: 300 }, { x: 1520, y: 540, s: 360 }, { x: S.cx, y: 820, s: 230 });
-    popAt(c, u, 0.2, ip.x, ip.y, () => { if (second) I.rocket(c, 0, 0, ip.s, {}); else { c.fillStyle = '#FFFFFF'; c.beginPath(); c.arc(0, 0, ip.s * 0.62, 0, 7); c.fill(); I.chartUp(c, 0, 0, ip.s * 0.85, { p: 1 }); } });
-    noSign(c, ip.x, ip.y, ip.s * 0.62, (u - 0.5) / 0.15);
-  }
-
-  // 8–14  Wally has notes: real margin notes from the book, one card per beat-pair
-  const NOTES = [
-    { l: '7.1', icon: (c, s) => I.house(c, 0, 0, s) },
-    { l: '5.1', big: '18%*' },
-    { l: '11.3', icon: (c, s) => I.key(c, 0, 0, s, { rot: -0.5 }) },
-    { l: '9.1', icon: (c, s) => I.goldbar(c, 0, 0, s) },
-    { l: '3.1', icon: (c, s) => I.cricket(c, 0, 0, s) },
-    { l: '1.2', emoji: '🌯' },
-  ];
-  const ROT = [-0.045, 0.035, -0.025, 0.05, -0.035, 0.025];
-  function noteCard(c, n, k, cw, ch, t) {
-    const sc = LESSON[n.l];
-    K.box(c, -cw / 2, -ch / 2, cw, ch, { r: 30, fill: '#FFFFFF', stroke: C.ink, lw: 5, shadow: 30 });
-    const tag = `CH ${String(sc.chapter).padStart(2, '0')} · ${sc.chapterName.toUpperCase()}`;
-    const ts = Math.min(24, fit(c, tag, cw - 300, { f: 'mono', s: 24, w: 700, ls: 2 }));
-    K.chip(c, tag, -cw / 2 + 40, -ch / 2 + 60, { s: ts, fill: C.orangeSoft, c: C.orange2, ls: 2 });
-    K.txt(c, `p. ${sc.page} / 49`, cw / 2 - 44, -ch / 2 + 68, { f: 'mono', s: 22, w: 600, c: C.ink3, a: 'right', ls: 2 });
-    const iy = -ch * 0.08, is = Math.min(cw, ch) * 0.34;
-    c.save(); c.translate(0, iy + Math.sin(t * 7) * 6);
-    if (n.icon) n.icon(c, is);
-    else if (n.emoji) emoji(c, n.emoji, 0, 0, is * 0.95);
-    else heavy(c, n.big, 0, is * 0.32, { s: is * 0.95, st: 'expanded', c: C.green, shadow: 8 });
-    c.restore();
-    hand(c, sc.note, 0, ch * 0.29, { s: Math.min(92, cw * 0.1), maxW: cw - 110, c: C.orange, p: clamp((t - 0.08) / 0.3) });
-  }
-  function shotNotes(c, S) {
-    const lt = S.lt; bgPaper(c);
-    const hp = pk(S, { x: S.cx, y: 330, a: 'center', s: 96 }, { x: 130, y: 330, a: 'left', s: 110 }, { x: S.cx, y: 130, a: 'center', s: 76 });
-    K.txt(c, 'Wally has', hp.x, hp.y, { f: 'serif', s: hp.s, w: 700, a: hp.a });
-    K.txt(c, 'notes.', hp.x, hp.y + hp.s * 1.05, { f: 'serif', s: hp.s * 1.1, w: 700, i: true, c: C.orange, a: hp.a });
-    if (S.land) {
-      K.txt(c, '48 lessons. Every one', 134, 560, { f: 'serif', s: 40, i: true, c: C.ink2 });
-      K.txt(c, 'with a margin note.', 134, 612, { f: 'serif', s: 40, i: true, c: C.ink2 });
-      wally(c, { x: 360, y: 1040, s: 0.62, rot: Math.sin(S.t * Math.PI * 2) * 0.03, bob: Math.abs(Math.sin(S.t * Math.PI * 2)) * 10, trunk: { bend: -0.4, lift: 0.3 + Math.sin(S.t * 4) * 0.1 }, earL: Math.abs(Math.sin(S.t * Math.PI * 2)) * 0.1, earR: Math.abs(Math.sin(S.t * Math.PI * 2)) * 0.1 });
-    }
-    const cp = pk(S, { x: S.cx, y: 1010, w: 900, h: 780 }, { x: 1230, y: 560, w: 940, h: 760 }, { x: S.cx, y: 640, w: 860, h: 680 });
-    const k = Math.min(5, Math.floor(lt / 1.0));
-    for (let j = Math.max(0, k - 2); j <= k; j++) {
-      const t = lt - j, p = E.outExpo(clamp(t / 0.22));
-      const ox = lerp(W * 0.9, 0, p) * (j % 2 ? -1 : 1), oy = lerp(400, 0, p), r = lerp(ROT[j] * 6, ROT[j], p);
-      const s = lerp(1.15, 1, p) * (j < k ? 0.97 : 1);
-      c.save(); c.translate(cp.x + ox, cp.y + oy); c.rotate(r); c.scale(s, s);
-      noteCard(c, NOTES[j], j, cp.w, cp.h, t);
-      c.restore();
-    }
-  }
-
-  // 14–16  the book in numbers, one per beat
-  function shotNumbers(c, S) {
-    const lt = S.lt, k = Math.min(3, Math.floor(lt / B)), u = lt - k * B;
-    const N = [['49', 'PAGES', 'o'], ['11', 'CHAPTERS', 'd'], ['48', 'LESSONS', 'p'], ['1', 'ELEPHANT', 'o']][k];
-    if (N[2] === 'o') bgOrange(c, S); else if (N[2] === 'd') bgDark(c); else bgPaper(c);
-    const numC = N[2] === 'o' ? '#FFFFFF' : C.orange, labC = N[2] === 'd' ? '#F4F1EA' : C.ink;
-    if (k === 3) {
-      const wp = pk(S, { x: S.cx, y: 1500, s: 1.0 }, { x: 1380, y: 1060, s: 1.2 }, { x: S.cx + 200, y: 1090, s: 0.75 });
-      const q = E.outBack(clamp(u / 0.22), 1.6);
-      wally(c, { x: wp.x, y: wp.y + (1 - q) * 700, s: wp.s, squash: u < 0.3 ? Math.sin(u / 0.3 * Math.PI) * -0.06 : 0, earL: 0.15 * Math.sin(u * 20), earR: 0.15 * Math.sin(u * 20), trunk: { bend: -0.6, lift: 0.8, curl: 0.4 }, sparkle: u > 0.2 ? Math.sin(clamp((u - 0.2) / 0.28) * Math.PI) : 0 });
-    }
-    const np = k === 3 ? pk(S, { x: S.cx, y: 640, s: 380 }, { x: 560, y: 640, s: 520 }, { x: 300, y: 600, s: 420 }) : pk(S, { x: S.cx, y: 1040, s: 560 }, { x: S.cx, y: 680, s: 560 }, { x: S.cx, y: 680, s: 520 });
-    slam(c, u, 0, np.x, np.y, () => heavy(c, N[0], 0, 0, { s: np.s, st: 'expanded', c: numC, shadow: N[2] === 'p' ? 0 : 14, sc: N[2] === 'd' ? '#000' : C.ink }), { d: 0.14, from: 1.5 });
-    const ly = np.y + pk(S, 140, 150, 140);
-    const lp = E.outCubic(clamp((u - 0.05) / 0.15));
-    K.txt(c, N[1], np.x, ly + (1 - lp) * 30, { f: 'mono', s: pk(S, 72, 78, 64), w: 800, c: labC, a: 'center', ls: 12, alpha: lp });
-  }
-
-  // 16–19  WATCH IT: the real film, jump-cut on every beat
-  const CUTS = [['AD1', 0.55], ['C7', 0.35], ['L5.1', 0.55], ['L11.3', 0.55], ['L3.1', 0.62], ['O1', 0.05]];
-  function filmFrame(i, u) {
-    const sc = SCENE[CUTS[i][0]], T = sc.start + sc.dur * CUTS[i][1] + u;
-    window.FILM.renderAt(T); return T;
-  }
-  function fmtT(s) { s = Math.floor(s); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
-  function shotWatch(c, S) {
-    const lt = S.lt; bgDark(c);
-    const g = c.createRadialGradient(S.cx, S.cy, 50, S.cx, S.cy, Math.max(W, H) * 0.6); g.addColorStop(0, 'rgba(255,140,60,.18)'); g.addColorStop(1, 'rgba(255,140,60,0)'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-    const pw = pk(S, 1000, 1100, 960), ph = pw * 9 / 16;
-    const pp = pk(S, { x: S.cx, y: 1000 }, { x: S.cx, y: 540 }, { x: S.cx, y: 590 });
-    const tp = pk(S, { x: S.cx, y: 560, a: 'center' }, { x: S.cx, y: 130, a: 'center' }, { x: S.cx, y: 170, a: 'center' });
-    slam(c, lt, 0, tp.x, tp.y, () => heavy(c, '▶ WATCH IT.', 0, 0, { s: pk(S, 150, 120, 120), c: '#F4F1EA', shadow: 0, maxW: W - 100 }), { from: 1.4 });
-    const k = Math.min(CUTS.length - 1, Math.floor(lt / B)), u = lt - k * B;
-    const T = filmFrame(k, u);
-    const q = E.outExpo(clamp(lt / 0.3)), s = lerp(0.85, 1, q);
-    c.save(); c.translate(pp.x, pp.y); c.scale(s, s);
-    c.save(); c.shadowColor = 'rgba(0,0,0,.6)'; c.shadowBlur = 60; c.shadowOffsetY = 20; K.rr(c, -pw / 2, -ph / 2, pw, ph + 70, 26); c.fillStyle = '#000'; c.fill(); c.restore();
-    c.save(); K.rr(c, -pw / 2, -ph / 2, pw, ph + 70, 26); c.clip();
-    c.drawImage(filmCv, -pw / 2, -ph / 2, pw, ph);
-    // controls strip
-    c.fillStyle = '#100B07'; c.fillRect(-pw / 2, ph / 2, pw, 70);
-    c.fillStyle = 'rgba(255,255,255,.18)'; c.fillRect(-pw / 2 + 170, ph / 2 + 33, pw - 340, 6);
-    c.fillStyle = C.orange; c.fillRect(-pw / 2 + 170, ph / 2 + 33, (pw - 340) * (T / TL.duration), 6);
-    c.beginPath(); c.arc(-pw / 2 + 170 + (pw - 340) * (T / TL.duration), ph / 2 + 36, 11, 0, 7); c.fill();
-    c.fillStyle = '#F4F1EA'; c.beginPath(); c.rect(-pw / 2 + 36, ph / 2 + 22, 8, 28); c.rect(-pw / 2 + 52, ph / 2 + 22, 8, 28); c.fill();
-    K.txt(c, fmtT(T), -pw / 2 + 80, ph / 2 + 45, { f: 'mono', s: 22, w: 600, c: '#F4F1EA' });
-    K.txt(c, fmtT(TL.duration), pw / 2 - 40, ph / 2 + 45, { f: 'mono', s: 22, w: 600, c: 'rgba(244,241,234,.6)', a: 'right' });
-    c.restore();
-    K.rr(c, -pw / 2, -ph / 2, pw, ph + 70, 26); c.lineWidth = 3; c.strokeStyle = 'rgba(244,241,234,.25)'; c.stroke();
-    c.restore();
-    const sy = pp.y + ph / 2 + pk(S, 190, 0, 0) + 70;
-    if (S.port) K.words(c, 'The whole book as a', S.cx, sy, { f: 'serif', s: 56, w: 400, i: true, c: 'rgba(244,241,234,.85)', a: 'center', t: lt - 0.4, per: 0.05 });
-    const line = S.port ? 'nine-minute film.' : 'The whole book as a nine-minute film.';
-    const y2 = S.port ? sy + 76 : pp.y + ph / 2 + 70 + pk(S, 0, 70, 100);
-    K.words(c, line, S.cx, y2, { f: 'serif', s: pk(S, 64, 48, 46), w: 700, i: true, c: S.port ? C.orange : 'rgba(244,241,234,.9)', a: 'center', t: lt - (S.port ? 0.7 : 0.4), per: 0.05, hl: S.port ? [] : [5, 6], hc: C.orange });
-  }
-
-  // 19–22  PLAY IT: Tokens, Please. BARZ gets DENIED, TBILLY gets ADMITTED
-  const CASES = {
-    BARZ: { kind: 'gold', name: 'Gold-in-your-wallet token', fields: [['ASSET', '1 token = 1 gram of gold'], ['WRAPPER', 'Permissioned token, freeze for court orders'], ['CUSTODIAN', 'To be announced (soon™)', 1], ['TRANSFER AGENT', 'Registered, keeps the register'], ['HOLDERS', '3,904 wallets']] },
-    TBILLY: { kind: 'tbill', name: 'Granite T-Bill Fund token', fields: [['ASSET', 'Short-term U.S. Treasury bills'], ['WRAPPER', 'Shares of a regulated fund, issued as tokens'], ['CUSTODIAN', 'Granite Trust Co., qualified custodian'], ['TRANSFER AGENT', 'Registered, keeps the official register'], ['TOTAL VALUE', '$210M onchain · $14M in protocols (TVL)']] },
-  };
-  function permit(c, tick, cw, flagP, stampP, ok) {
-    const cs = CASES[tick], rh = 86, hh = 64, th = 130, ch = hh + th + cs.fields.length * rh + 30;
+  // ------------------------------------------------------------------ book props (permit + page), from the book's data
+  const BARZ = [['ASSET', '1 token = 1 gram of gold'], ['WRAPPER', 'Permissioned token, freeze for court orders'], ['CUSTODIAN', 'To be announced (soon™)', 1], ['TRANSFER AGENT', 'Registered, keeps the register'], ['HOLDERS', '3,904 wallets']];
+  function permit(c, cw, flagP, stampP) {
+    const rh = 86, hh = 64, th = 130, ch = hh + th + BARZ.length * rh + 30;
     c.save(); c.translate(-cw / 2, -ch / 2);
-    c.save(); c.shadowColor = 'rgba(0,0,0,.5)'; c.shadowBlur = 40; c.shadowOffsetY = 18; K.rr(c, 0, 0, cw, ch, 22); c.fillStyle = '#F3EEE3'; c.fill(); c.restore();
-    c.save(); K.rr(c, 0, 0, cw, ch, 22); c.clip(); c.fillStyle = C.ink; c.fillRect(0, 0, cw, hh); c.restore();
+    K.rr(c, 0, 0, cw, ch, 20); c.fillStyle = '#F3EEE3'; c.fill();
+    c.save(); K.rr(c, 0, 0, cw, ch, 20); c.clip(); c.fillStyle = '#16110C'; c.fillRect(0, 0, cw, hh); c.restore();
     c.beginPath(); c.arc(36, hh / 2, 8, 0, 7); c.fillStyle = C.orange; c.fill();
-    K.txt(c, 'ONCHAIN CUSTOMS · ENTRY PERMIT', 58, hh / 2 + 8, { f: 'mono', s: 22, w: 700, c: C.orange, ls: 3 });
-    K.txt(c, tick, 36, hh + 92, { f: 'display', s: 82, w: 900, st: 'expanded', c: C.ink });
-    const tw = K.measure(c, tick, { f: 'display', s: 82, w: 900, st: 'expanded' });
-    K.txt(c, cs.name, 36 + tw + 24, hh + 90, { f: 'serif', s: Math.min(32, fit(c, cs.name, cw - tw - 90, { f: 'serif', s: 32, w: 400, i: true })), i: true, c: C.ink2 });
-    cs.fields.forEach(([lab, val, flag], i) => {
-      const y = hh + th + i * rh;
-      if (flag && flagP > 0) { c.fillStyle = `rgba(214,69,69,${0.16 * clamp(flagP * 3)})`; c.fillRect(8, y, cw - 16, rh); }
+    K.txt(c, 'ONCHAIN CUSTOMS · ENTRY PERMIT', 58, hh / 2 + 8, { f: 'mono', s: 22, w: 700, c: GOLD, ls: 3 });
+    K.txt(c, 'BARZ', 36, hh + 92, { f: 'display', s: 82, w: 900, st: 'expanded', c: C.ink });
+    K.txt(c, 'Gold-in-your-wallet token', 290, hh + 90, { f: 'serif', s: 30, i: true, c: C.ink2 });
+    BARZ.forEach(([lab, val, flag], i) => {
+      const y = hh + th + i * rh, on = flag && flagP > 0;
+      if (on) { c.fillStyle = `rgba(214,69,69,${0.16 * clamp(flagP * 3)})`; c.fillRect(8, y, cw - 16, rh); }
       c.fillStyle = C.line2; c.fillRect(30, y, cw - 60, 2);
-      K.txt(c, lab, 36, y + 34, { f: 'mono', s: 19, w: 700, c: flag && flagP > 0 ? C.red : C.ink3, ls: 2 });
-      const vs = Math.min(31, fit(c, val, cw - 72, { f: 'serif', s: 31, w: 700 }));
-      K.txt(c, val, 36, y + 72, { f: 'serif', s: vs, w: 700, c: flag && flagP > 0 ? C.red : C.ink });
-      if (flag) { const vw = K.measure(c, val, { f: 'serif', s: vs, w: 700 }); K.circleAround(c, 36 + vw / 2, y + 60, vw / 2 + 26, 34, flagP, { lw: 6 }); }
+      K.txt(c, lab, 36, y + 34, { f: 'mono', s: 19, w: 700, c: on ? C.red : C.ink3, ls: 2 });
+      K.txt(c, val, 36, y + 72, { f: 'serif', s: 31, w: 700, c: on ? C.red : C.ink });
+      if (flag) { const vw = K.measure(c, val, { f: 'serif', s: 31, w: 700 }); K.circleAround(c, 36 + vw / 2, y + 60, vw / 2 + 26, 34, flagP, { lw: 6 }); }
     });
     c.restore();
-    K.stamp(c, ok ? 'ADMITTED' : 'DENIED', cw * 0.12, 40, { p: stampP, s: 104, c: ok ? C.green : C.red, rot: ok ? -0.1 : -0.16, seed: ok ? 3 : 9 });
+    K.stamp(c, 'DENIED', cw * 0.12, 40, { p: stampP, s: 110, c: C.red, rot: -0.16, seed: 9 });
     return ch;
   }
-  function shotPlay(c, S) {
-    const lt = S.lt;
-    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#3A2A1A'); g.addColorStop(1, '#16100A'); c.fillStyle = g; c.fillRect(0, 0, W, H);
-    c.save(); c.globalAlpha = 0.07; c.strokeStyle = '#000'; for (let x = 0; x < W; x += 34) { c.lineWidth = 2 + K.hash(x) * 4; c.beginPath(); c.moveTo(x, 0); c.lineTo(x + 20 * Math.sin(x), H); c.stroke(); } c.restore();
-    const tp = pk(S, { x: S.cx, y: 330, a: 'center' }, { x: 130, y: 330, a: 'left' }, { x: S.cx, y: 70, a: 'center' });
-    K.txt(c, 'PLAY IT.', tp.x, tp.y - pk(S, 120, 130, 0), { f: 'mono', s: 30, w: 700, c: C.orange, a: tp.a, ls: 8, alpha: S.land || S.port ? clamp(lt * 5) : 0 });
-    slam(c, lt, 0, tp.x, tp.y + pk(S, 0, 0, 90), () => heavy(c, 'TOKENS,', 0, 0, { s: pk(S, 150, 150, 96), c: '#F4F1EA', a: tp.a, maxW: pk(S, W - 100, 760, W - 100) }), { from: 1.4 });
-    slam(c, lt, 0.12, tp.x, tp.y + pk(S, 140, 140, 180), () => heavy(c, 'PLEASE.', 0, 0, { s: pk(S, 150, 150, 96), c: C.orange, a: tp.a, maxW: pk(S, W - 100, 760, W - 100) }), { from: 1.4 });
-    if (!S.sq) {
-      const sp = pk(S, { x: S.cx, y: 1610 }, { x: 134, y: 640 });
-      const lines = ['48 tokens at the border.', 'Find the red flag.'];
-      lines.forEach((l, i) => K.txt(c, l, sp.x, sp.y + i * 58, { f: 'serif', s: 46, w: i ? 700 : 400, i: true, c: i ? C.orange : 'rgba(244,241,234,.85)', a: tp.a, alpha: clamp((lt - 0.5 - i * 0.25) * 4) }));
-    }
-    const cw = pk(S, 960, 860, 900), cp = pk(S, { x: S.cx, y: 1130 }, { x: 1340, y: 650 }, { x: S.cx, y: 700 });
-    const sw = lt >= 1.95 ? 1 : 0, u = lt - (sw ? 1.95 : 0);
-    const tick = sw ? 'TBILLY' : 'BARZ';
-    const inP = E.outExpo(clamp(u / 0.28)), outP = !sw ? E.inCubic(clamp((lt - 1.75) / 0.2)) : 0;
-    const flagP = !sw ? clamp((lt - 0.75) / 0.3) : 0, stampP = !sw ? clamp((lt - 1.5) / 0.2) : clamp((lt - 2.5) / 0.2);
-    const sc = pk(S, 1, 1, 0.9);
-    c.save(); c.translate(cp.x - outP * W * 1.1, cp.y + (1 - inP) * H * 0.8); c.rotate(lerp(0.12, sw ? 0.015 : -0.02, inP) - outP * 0.2); c.scale(sc, sc);
-    const ch = permit(c, tick, cw, flagP, stampP, sw);
-    // the token waiting at the window, perched on the permit's corner
-    const mood = sw ? (stampP > 0 ? 'happy' : 'calm') : (stampP > 0 ? 'worried' : flagP > 0 ? 'smug' : 'smug');
-    const bob = Math.abs(Math.sin(S.t * Math.PI * 2)) * 14;
-    const mh = pk(S, 290, 300, 200); mascot(c, CASES[tick].kind, mood, cw / 2 - mh * 0.5, -ch / 2 + 30 - bob, mh);
-    c.restore();
-  }
-
-  // 22–25  READ IT: pages riffle, land on 11.4 with the margin note
-  const RIFFLE = ['1.1', '2.2', '3.4', '4.3', '5.3', '6.4', '8.1', '11.4'];
-  const CH_ICON = { 1: 'block', 2: 'share', 3: 'chartUp', 4: 'tbill', 5: 'cash', 6: 'loan', 7: 'house', 8: 'gear', 9: 'goldbar', 10: 'bank', 11: 'magnifier' };
-  function page(c, code, pw, ph, extra) {
+  const CH_ICON = { 1: 'vault', 3: 'clock', 5: 'cash', 11: 'magnifier' };
+  function page(c, code, pw, ph, extra = {}) {
     const sc = LESSON[code];
     c.fillStyle = '#FAF8F3'; c.fillRect(-pw / 2, -ph / 2, pw, ph);
-    const sp = c.createLinearGradient(-pw / 2, 0, -pw / 2 + 50, 0); sp.addColorStop(0, 'rgba(60,40,10,.18)'); sp.addColorStop(1, 'rgba(60,40,10,0)'); c.fillStyle = sp; c.fillRect(-pw / 2, -ph / 2, 50, ph);
     const m = pw * 0.09, x0 = -pw / 2 + m, top = -ph / 2;
     K.txt(c, "WALLY'S RWA TEXTBOOK", x0, top + 62, { f: 'mono', s: 16, w: 600, c: C.ink, ls: 3 });
     K.txt(c, sc.chapterName.toUpperCase(), pw / 2 - m, top + 62, { f: 'mono', s: 16, w: 600, c: C.orange, a: 'right', ls: 2 });
@@ -407,137 +169,266 @@
     K.txt(c, sc.lesson, x0, top + 150, { f: 'mono', s: 30, w: 700, c: C.orange, ls: 2 });
     const tsz = Math.min(54, fit(c, sc.title, pw - 2 * m - 90, { f: 'serif', s: 54, w: 700 }));
     K.txt(c, sc.title, x0 + 90, top + 152, { f: 'serif', s: tsz, w: 700 });
-    const fn = I[CH_ICON[sc.chapter]]; if (fn) fn(c, 0, top + ph * 0.36, ph * (ph > 800 ? 0.2 : 0.16), {});
+    const fn = I[CH_ICON[sc.chapter]]; if (fn) fn(c, 0, top + ph * 0.36, ph * 0.18, {});
     const py = top + ph * 0.56;
     c.fillStyle = C.line2; c.fillRect(x0, py, pw - 2 * m, 2);
     K.txt(c, 'THE POINT', x0, py + 44, { f: 'mono', s: 17, w: 700, c: C.orange, ls: 5 });
-    const ps = pw > 700 ? 36 : 32;
-    if (extra) K.marker(c, x0 - 6, py + 64, pw - 2 * m + 12, ps * 2.6, extra.marker, 'rgba(255,98,0,.18)');
+    const ps = 36, lines = K.wrap(c, sc.point, pw - 2 * m, { f: 'serif', s: ps, w: 700, i: true });
+    if (extra.marker) K.marker(c, x0 - 6, py + 70, pw - 2 * m + 12, lines.length * ps * 1.3 + 10, extra.marker, 'rgba(231,180,60,.42)');
     K.words(c, sc.point, x0, py + 104, { f: 'serif', s: ps, w: 700, i: true, maxW: pw - 2 * m, lh: ps * 1.3 });
     K.txt(c, `${sc.page} / 49`, 0, ph / 2 - 40, { f: 'mono', s: 18, w: 600, c: C.ink2, a: 'center', ls: 2 });
-    if (extra && extra.note > 0) hand(c, sc.note, 0, ph / 2 - (ph > 800 ? 120 : 82), { s: ph > 800 ? 74 : 60, c: C.orange, p: extra.note });
-    c.lineWidth = 2; c.strokeStyle = 'rgba(32,26,19,.2)'; c.strokeRect(-pw / 2, -ph / 2, pw, ph);
+    if (extra.note > 0) {
+      const lw = K.measure(c, sc.note, { f: 'hand', s: 72, w: 700 });
+      c.save(); c.beginPath(); c.rect(-lw / 2 - 10, ph / 2 - 180, (lw + 20) * clamp(extra.note), 110); c.clip();
+      K.txt(c, sc.note, 0, ph / 2 - 100, { f: 'hand', s: 72, w: 700, c: C.orange2, a: 'center' }); c.restore();
+    }
   }
-  function shotRead(c, S) {
-    const lt = S.lt; bgPaper(c);
-    const tp = pk(S, { x: S.cx, y: 300, a: 'center' }, { x: 130, y: 400, a: 'left' }, { x: S.cx, y: 150, a: 'center' });
-    slam(c, lt, 0, tp.x, tp.y, () => heavy(c, 'READ IT.', 0, 0, { s: pk(S, 150, 160, 110), c: C.ink, a: tp.a }), { from: 1.4 });
-    const sub = S.sq ? ['48 lessons, word for word.'] : ['48 lessons, word for word.', "Plus Wally's margin notes."];
-    sub.forEach((l, i) => K.txt(c, l, tp.x, tp.y + pk(S, 90, 100, 70) + i * 58, { f: 'serif', s: pk(S, 46, 48, 40), w: i ? 700 : 400, i: true, c: i ? C.orange : C.ink2, a: tp.a, alpha: clamp((lt - 0.3 - i * 0.25) * 4) }));
-    const pp = pk(S, { x: S.cx, y: 1080, w: 820, h: 1000 }, { x: 1330, y: 545, w: 740, h: 900 }, { x: S.cx, y: 660, w: 640, h: 800 });
-    const enter = E.outExpo(clamp(lt / 0.3));
-    c.save(); c.translate(pp.x, pp.y + (1 - enter) * 900); c.rotate(0.02 * (1 - enter) + 0.012);
-    // page block under the riffle
-    c.save(); c.shadowColor = 'rgba(40,28,10,.3)'; c.shadowBlur = 40; c.shadowOffsetY = 16; c.fillStyle = '#EDE6D8'; c.fillRect(-pp.w / 2 + 10, -pp.h / 2 + 10, pp.w, pp.h); c.restore();
-    for (let k = 4; k > 0; k--) { c.fillStyle = k % 2 ? '#F1EBDF' : '#E6DECD'; c.fillRect(-pp.w / 2 + k * 3, -pp.h / 2 + k * 3, pp.w, pp.h); }
-    // riffle: flip i starts at 0.25 + i*0.25 and lasts 0.2 s
-    const fl = (i) => clamp((lt - 0.25 - i * 0.25) / 0.2);
-    let cur = 0; while (cur < RIFFLE.length - 1 && fl(cur) >= 1) cur++;
-    const last = cur === RIFFLE.length - 1;
-    const tLand = 0.25 + (RIFFLE.length - 1) * 0.25 + 0.2;
-    page(c, RIFFLE[Math.min(cur + (last ? 0 : 1), RIFFLE.length - 1)], pp.w, pp.h, last ? { note: clamp((lt - tLand - 0.15) / 0.45), marker: clamp((lt - tLand - 0.6) / 0.35) } : null);
-    if (!last) {
-      const p = E.inOutCubic(fl(cur));
-      c.save(); c.translate(-pp.w / 2, 0); c.scale(Math.cos(p * Math.PI / 2) * (1 - p * 0.05), 1); c.translate(pp.w / 2, 0);
-      page(c, RIFFLE[cur], pp.w, pp.h);
-      c.fillStyle = `rgba(0,0,0,${0.25 * p})`; c.fillRect(-pp.w / 2, -pp.h / 2, pp.w, pp.h);
+
+  // ================================================================== SHOTS (B = 2/3 s; bar = 4 beats)
+  // 0 – 2.67  RWA FOUNDATION PRESENTS
+  function shotOpen(c, S) {
+    const lt = S.lt; bgNight(c, S); haze(c, S, 0.8); bokeh(c, S, 26, 0.7); leak(c, S, 0.6);
+    const lw = pk(S, 460, 600, 440) * E.inOutCubic(clamp((lt - 0.2) / 1.2));
+    const lg = c.createLinearGradient(S.cx - lw, 0, S.cx + lw, 0); lg.addColorStop(0, 'rgba(212,175,106,0)'); lg.addColorStop(0.5, GOLD2); lg.addColorStop(1, 'rgba(212,175,106,0)');
+    c.fillStyle = lg; c.fillRect(S.cx - lw, S.cy + 8, lw * 2, 2);
+    reveal(c, lt, 0.5, 0.9, () => { K.rwafMark(c, S.cx, S.cy - 150, 96, CREAM); caps(c, 'RWA FOUNDATION', S.cx, S.cy - 36, { s: 32, w: 600, c: CREAM, ls: 16 }); });
+    reveal(c, lt, 1.0, 0.9, () => caps(c, 'PRESENTS', S.cx, S.cy + 70, { s: 20, ls: 14 }));
+  }
+
+  // 2.67 – 5.33  extreme close-up: the sunglasses, a light sweeps across them
+  let LENS = null;
+  function shotGlasses(c, S) {
+    const lt = S.lt; bgNight(c, S, S.cx * 0.7, S.cy * 0.6); haze(c, S, 0.7);
+    const s = pk(S, 3.3, 3.0, 2.9) * (1 + lt * 0.03), gy = pk(S, S.cy - 260, S.cy - 60, S.cy - 90), gx = S.cx + Math.sin(lt * 0.4) * 10;
+    const pose = { x: gx, y: gy + s * 449, s };
+    litWally(c, pose, { lx: -0.7, ly: -0.7, dark: 0.95, cx: gx, cy: gy, rimBlur: 16, rimOff: 12, rimA: 0.75, L: 520 });
+    // a reflection gliding across the lenses (the rig's own glint never animates; this is light moving over glass)
+    const sw = clamp((lt - 0.7) / 1.2);
+    if (sw > 0 && sw < 1) {
+      if (!LENS) { LENS = new Path2D(); LENS.addPath(new Path2D(R.P.lensL)); LENS.addPath(new Path2D(R.P.lensR)); }
+      c.save(); c.translate(pose.x, pose.y); c.scale(s, s); c.translate(-250, -591); c.clip(LENS);
+      const bx = lerp(90, 430, E.inOutSine(sw));
+      c.translate(bx, 140); c.transform(1, 0, -0.55, 1, 0, 0);
+      const g = c.createLinearGradient(-36, 0, 36, 0); g.addColorStop(0, 'rgba(255,240,210,0)'); g.addColorStop(0.5, 'rgba(255,240,210,.6)'); g.addColorStop(1, 'rgba(255,240,210,0)');
+      c.fillStyle = g; c.fillRect(-40, -60, 80, 120);
       c.restore();
+    }
+    const ly = pk(S, H - 520, H - 210, H - 150);
+    const g2 = c.createLinearGradient(0, ly - 300, 0, H); g2.addColorStop(0, 'rgba(0,0,0,0)'); g2.addColorStop(1, 'rgba(0,0,0,.88)'); c.fillStyle = g2; c.fillRect(0, ly - 300, W, H);
+    reveal(c, lt, 0.55, 0.9, () => line(c, "He doesn't chase pumps.", S.cx, ly, { s: 66, maxW: W - 100 }));
+  }
+
+  // 5.33 – 8  a gold coin turns slowly in the dark
+  function shotCoin(c, S) {
+    const lt = S.lt; bgNight(c, S); bokeh(c, S, 44, 1.2); haze(c, S, 0.8);
+    const cy = pk(S, S.cy - 160, S.cy - 50, S.cy - 90), r = pk(S, 250, 220, 210) * (1 + lt * 0.03);
+    const glow = c.createRadialGradient(S.cx, cy, r * 0.4, S.cx, cy, r * 2.4); glow.addColorStop(0, 'rgba(231,180,60,.32)'); glow.addColorStop(1, 'rgba(231,180,60,0)'); c.fillStyle = glow; c.fillRect(0, 0, W, H);
+    const spin = lerp(-0.22, 0.22, lt / S.d);
+    K.coin(c, S.cx, cy, r, { fill: '#D9A93A', rim: '#8A6420', stroke: '#3A2A10', spin, markC: '#FBE7B0' });
+    const gp = clamp((lt - 0.9) / 0.9);
+    if (gp > 0 && gp < 1) {
+      c.save(); c.globalCompositeOperation = 'screen'; const gx = S.cx + lerp(-r, r, E.inOutSine(gp)) * Math.abs(Math.cos(spin * Math.PI));
+      const g = c.createRadialGradient(gx, cy - r * 0.3, 0, gx, cy - r * 0.3, r * 0.7); g.addColorStop(0, 'rgba(255,245,220,.55)'); g.addColorStop(1, 'rgba(255,245,220,0)');
+      c.fillStyle = g; c.fillRect(S.cx - r * 1.5, cy - r * 1.5, r * 3, r * 3); c.restore();
+    }
+    const ly = pk(S, H - 520, H - 210, H - 150);
+    reveal(c, lt, 0.45, 0.9, () => line(c, 'He asks who holds the gold.', S.cx, ly, { s: 66, maxW: W - 100 }));
+  }
+
+  // 8 – 10.67  the fine print: a textbook page in shallow focus, the point gets highlighted in gold
+  function shotPage(c, S) {
+    const lt = S.lt; bgNight(c, S);
+    const pc = pageCv.getContext('2d'); pc.setTransform(1, 0, 0, 1, 0, 0); pc.clearRect(0, 0, pageCv.width, pageCv.height);
+    pc.translate(pageCv.width / 2, pageCv.height / 2); page(pc, '1.4', pageCv.width, pageCv.height, { marker: clamp((lt - 0.7) / 0.8) });
+    const sc = pk(S, 1.55, 1.45, 1.35) * (1 + lt * 0.03);
+    const px = S.cx + pk(S, 30, 60, 20), py = S.cy + pk(S, -120, -230, -40) - lt * 30;
+    const fyOff = pageCv.height * 0.2 * sc; // the point paragraph sits ~20% below the page centre
+    const draw = (blur) => { c.save(); c.filter = `${blur ? `blur(${blur}px) ` : ''}brightness(.78) sepia(.3)`; c.translate(px, py); c.rotate(-0.07); c.scale(sc, sc); c.drawImage(pageCv, -pageCv.width / 2, -pageCv.height / 2); c.restore(); };
+    draw(9);
+    const fy = py + fyOff, band = pk(S, 230, 170, 180);
+    c.save(); c.beginPath(); c.rect(0, fy - band, W, band * 2); c.clip(); draw(0); c.restore();
+    const l = c.createRadialGradient(px, fy, 80, px, fy, Math.max(W, H) * 0.55); l.addColorStop(0, 'rgba(255,190,110,0)'); l.addColorStop(0.5, 'rgba(10,6,3,.35)'); l.addColorStop(1, 'rgba(5,3,2,.94)');
+    c.fillStyle = l; c.fillRect(0, 0, W, H);
+    const ly = pk(S, H - 470, H - 210, H - 130);
+    const g2 = c.createLinearGradient(0, ly - 220, 0, H); g2.addColorStop(0, 'rgba(0,0,0,0)'); g2.addColorStop(1, 'rgba(0,0,0,.92)'); c.fillStyle = g2; c.fillRect(0, ly - 220, W, H);
+    reveal(c, lt, 0.5, 0.9, () => line(c, 'He reads the fine print.', S.cx, ly, { s: 66, maxW: W - 100 }));
+  }
+
+  // 10.67 – 13.33  the drop: one word per beat over graded footage from the film
+  const WORDS = [['CUSTODY', 'L1.4'], ['SETTLEMENT', 'L3.2'], ['YIELD', 'L5.1'], ['RED FLAGS', 'L11.1']];
+  function shotWords(c, S) {
+    const lt = S.lt, k = Math.min(3, Math.floor(lt / B)), u = lt - k * B;
+    const sc = TL.scenes.find((s) => s.id === WORDS[k][1]);
+    window.FILM.renderAt(sc.start + sc.dur * 0.62 + u);
+    const z = 1.15 + u * 0.08, fw = Math.max(W, H * 16 / 9) * z, fh = fw * 9 / 16;
+    c.save(); c.filter = 'grayscale(1) sepia(.6) brightness(.24) contrast(1.25) blur(6px)'; c.drawImage(filmCv, S.cx - fw / 2 + (k % 2 ? -1 : 1) * u * 60, S.cy - fh / 2, fw, fh); c.restore();
+    const v = c.createRadialGradient(S.cx, S.cy, 0, S.cx, S.cy, Math.max(W, H) * 0.6); v.addColorStop(0, 'rgba(0,0,0,.15)'); v.addColorStop(1, 'rgba(0,0,0,.75)'); c.fillStyle = v; c.fillRect(0, 0, W, H);
+    const p = E.outCubic(clamp(u / 0.3)), ls = lerp(36, 16, E.outCubic(clamp(u / B)));
+    c.save(); c.globalAlpha = p; c.filter = `blur(${((1 - p) * 10).toFixed(1)}px)`;
+    goldText(c, WORDS[k][0], S.cx, S.cy + 40, { s: pk(S, 150, 170, 140), w: 300, ls, maxW: W - 120, sweep: clamp(u / B) * 1.2 - 0.1, glow: 30 });
+    c.restore();
+    caps(c, `${String(k + 1).padStart(2, '0')} / 04   ·   LESSON ${WORDS[k][1].slice(1)}`, S.cx, S.cy + 150, { s: 20, ls: 8, c: `rgba(243,235,221,${0.6 * p})` });
+    if (u < 0.08) { c.fillStyle = `rgba(255,230,190,${0.3 * (1 - u / 0.08)})`; c.fillRect(0, 0, W, H); }
+  }
+
+  // 13.33 – 16  no price calls. no hopium.
+  function shotNo(c, S) {
+    const lt = S.lt; bgNight(c, S); haze(c, S, 1); bokeh(c, S, 20, 0.6); leak(c, S, 0.5);
+    const y0 = pk(S, S.cy - 130, S.cy - 70, S.cy - 90), fs = pk(S, 92, 100, 84);
+    reveal(c, lt, 0.05, 0.6, () => K.txt(c, 'No price calls.', S.cx, y0, { f: 'serif', s: fs, w: 700, c: CREAM, a: 'center' }));
+    reveal(c, lt, 2 * B, 0.6, () => { K.font(c, 'serif', fs * 1.08, 700, true); const tw = c.measureText('No hopium.').width; c.fillStyle = goldFill(c, S.cx - tw / 2, S.cx + tw / 2, clamp((lt - 2 * B) / 1.0)); c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.fillText('No hopium.', S.cx, y0 + fs * 1.25); });
+    reveal(c, lt, 3 * B, 0.6, () => caps(c, 'JUST THE PAPERWORK', S.cx, y0 + fs * 2.4, { s: 22, ls: 12 }));
+  }
+
+  // 16 – 18.67  the reveal: WALLY. eau de due diligence.
+  function shotReveal(c, S) {
+    const lt = S.lt;
+    const wp = pk(S, { x: S.cx, y: 1600, s: 1.2 }, { x: 600, y: 945, s: 1.08 }, { x: S.cx, y: 1050, s: 1.05 });
+    bgNight(c, S, wp.x, wp.y - 300);
+    c.save(); c.globalCompositeOperation = 'screen';
+    const cg = c.createLinearGradient(wp.x, 0, wp.x, wp.y); cg.addColorStop(0, 'rgba(255,214,160,0)'); cg.addColorStop(0.3, 'rgba(255,214,160,.08)'); cg.addColorStop(1, 'rgba(255,214,160,.16)');
+    c.fillStyle = cg; c.beginPath(); c.moveTo(wp.x - 60, 0); c.lineTo(wp.x + 60, 0); c.lineTo(wp.x + 420 * wp.s, wp.y + 20); c.lineTo(wp.x - 420 * wp.s, wp.y + 20); c.closePath(); c.fill();
+    c.save(); c.translate(wp.x, wp.y); c.scale(1, 0.14); const fl = c.createRadialGradient(0, 0, 0, 0, 0, 380 * wp.s); fl.addColorStop(0, 'rgba(255,200,140,.4)'); fl.addColorStop(1, 'rgba(255,200,140,0)'); c.fillStyle = fl; c.fillRect(-400 * wp.s, -400 * wp.s, 800 * wp.s, 800 * wp.s); c.restore();
+    c.restore();
+    haze(c, S, 1.2);
+    const push = 1 + lt * 0.035;
+    c.save(); c.translate(wp.x, wp.y); c.scale(push, push); c.translate(-wp.x, -wp.y);
+    c.globalAlpha = E.outCubic(clamp(lt / 0.9));
+    litWally(c, { x: wp.x, y: wp.y, s: wp.s, trunk: { bend: Math.sin(S.t * 0.9) * 0.08 - 0.05 }, sparkle: lt > 1.5 ? Math.sin(clamp((lt - 1.5) / 0.6) * Math.PI) * 1.2 : 0 }, { lx: -0.25, ly: -1, dark: 0.72, cx: wp.x, cy: wp.y - 300 * wp.s, rimBlur: 12, rimOff: 7 });
+    c.restore();
+    const tp = pk(S, { x: S.cx, y: 420 }, { x: 1340, y: 520 }, { x: S.cx, y: 190 });
+    reveal(c, lt, 0.3, 1.0, () => goldText(c, 'WALLY', tp.x, tp.y, { s: pk(S, 210, 200, 170), w: 300, ls: lerp(70, 40, clamp(lt / 2.6)), maxW: pk(S, W - 60, 900, W - 60), sweep: clamp((lt - 0.8) / 1.4), glow: 40 }), { blur: 20 });
+    reveal(c, lt, 1.0, 0.9, () => line(c, 'eau de due diligence', tp.x, tp.y + pk(S, 100, 105, 85), { s: pk(S, 56, 58, 48) }));
+  }
+
+  // 18.67 – 22.67  WATCH. PLAY. READ. — three product shots, two beats each
+  function shotTrio(c, S) {
+    const lt = S.lt, k = Math.min(2, Math.floor(lt / (2 * B))), u = lt - k * 2 * B;
+    bgNight(c, S); haze(c, S, 0.8);
+    const label = ['WATCH.', 'PLAY.', 'READ.'][k], sub = ['THE NINE-MINUTE FILM', 'TOKENS, PLEASE', 'FORTY-EIGHT LESSONS'][k];
+    const push = 1 + u * 0.04;
+    const prod = pk(S, { x: S.cx, y: 1060 }, { x: 1230, y: 545 }, { x: S.cx, y: 650 });
+    c.save(); c.translate(prod.x, prod.y); c.scale(push, push); if (k) c.filter = 'brightness(.8) sepia(.28)';
+    if (k === 0) {
+      const sc = TL.scenes.find((s) => s.id === 'C11'); window.FILM.renderAt(sc.start + sc.dur * 0.3 + u);
+      const pw = pk(S, 960, 940, 880), ph = pw * 9 / 16;
+      c.rotate(-0.02);
+      c.save(); c.shadowColor = 'rgba(255,140,60,.35)'; c.shadowBlur = 90; c.fillStyle = '#000'; c.fillRect(-pw / 2, -ph / 2, pw, ph); c.restore();
+      c.drawImage(filmCv, -pw / 2, -ph / 2, pw, ph);
+      c.save(); c.translate(0, ph + 16); c.scale(1, -1); c.globalAlpha = 0.18; c.drawImage(filmCv, -pw / 2, -ph / 2, pw, ph); c.restore();
+      const fg = c.createLinearGradient(0, ph / 2 + 8, 0, ph * 1.4); fg.addColorStop(0, 'rgba(7,6,5,.3)'); fg.addColorStop(0.6, 'rgba(7,6,5,1)'); c.fillStyle = fg; c.fillRect(-pw, ph / 2 + 8, pw * 2, ph);
+    } else if (k === 1) {
+      c.rotate(-0.05); const s2 = pk(S, 1, 0.8, 0.88); c.scale(s2, s2);
+      const ch = permit(c, 900, clamp((u - 0.15) / 0.4), clamp((u - B) / 0.18));
+      const im = MASCOT[u > B ? 'worried' : 'smug']; if (im) c.drawImage(im, 900 / 2 - 230, -ch / 2 - 150 + Math.sin(S.t * 5) * 6, 200, 230);
+    } else {
+      c.rotate(0.03); const s3 = pk(S, 1.0, 0.75, 0.68); c.scale(s3, s3);
+      const pc = pageCv.getContext('2d'); pc.setTransform(1, 0, 0, 1, 0, 0); pc.clearRect(0, 0, pageCv.width, pageCv.height); pc.translate(pageCv.width / 2, pageCv.height / 2);
+      page(pc, '11.4', pageCv.width, pageCv.height, { note: clamp((u - 0.25) / 0.6) });
+      c.drawImage(pageCv, -pageCv.width / 2, -pageCv.height / 2);
     }
     c.restore();
+    const l = c.createRadialGradient(prod.x, prod.y, pk(S, 320, 300, 240), prod.x, prod.y, Math.max(W, H) * 0.7); l.addColorStop(0, 'rgba(0,0,0,0)'); l.addColorStop(1, 'rgba(4,3,2,.9)');
+    c.fillStyle = l; c.fillRect(0, 0, W, H);
+    const tp = pk(S, { x: S.cx, y: 400, a: 'center' }, { x: 140, y: 520, a: 'left' }, { x: S.cx, y: 140, a: 'center' });
+    reveal(c, u, 0.0, 0.45, () => goldText(c, label, tp.x, tp.y, { s: pk(S, 150, 120, 104), w: 300, ls: 22, a: tp.a, sweep: clamp(u / 1.2), glow: 24 }), { blur: 16 });
+    reveal(c, u, 0.25, 0.45, () => caps(c, sub, tp.x, tp.y + pk(S, 70, 66, 52), { s: 22, a: tp.a, ls: 10 }));
+    if (u < 0.07) { c.fillStyle = `rgba(255,230,190,${0.22 * (1 - u / 0.07)})`; c.fillRect(0, 0, W, H); }
   }
 
-  // 25–28  the hero shot: Wally, on his books, on the orange
-  function shotHero(c, S) {
-    const lt = S.lt; bgOrange(c, S, pk(S, S.cx, 1400, S.cx + 250), pk(S, 1300, 640, 760));
-    const beat = Math.abs(Math.sin(S.t * Math.PI)); // half-time sway for the breakdown
-    const wp = pk(S, { x: S.cx, y: 1560, s: 1.05 }, { x: 1400, y: 1050, s: 1.12 }, { x: S.cx + 250, y: 1060, s: 0.8 });
-    const spark = lt > 1.95 ? Math.sin(clamp((lt - 1.95) / 0.5) * Math.PI) : 0;
-    c.save(); c.fillStyle = 'rgba(120,30,0,.25)'; c.beginPath(); c.ellipse(wp.x, wp.y + 4, 260 * wp.s, 30 * wp.s, 0, 0, 7); c.fill(); c.restore();
-    wally(c, { x: wp.x, y: wp.y, s: wp.s, seated: 1, rot: Math.sin(S.t * Math.PI) * 0.025, earL: beat * 0.12, earR: beat * 0.12, trunk: { bend: Math.sin(S.t * Math.PI) * 0.3 - 0.2, lift: 0.2 + spark * 0.5, curl: 0.2 }, sparkle: spark * 1.4 });
-    const tp = pk(S, { x: S.cx, y: 330, a: 'center' }, { x: 130, y: 360, a: 'left' }, { x: S.cx, y: 150, a: 'center' });
-    const fs = pk(S, 84, 92, 66), gap = fs * 1.2;
-    const L = [['Tokenized real-world', 0, { c: '#FFFFFF', w: 700 }], ['assets, explained.', 0.25, { c: '#FFFFFF', w: 700 }], ['By an elephant.', 1.0, { c: C.ink, w: 700, i: true }]];
-    L.forEach(([s, a, o], i) => {
-      const y = tp.y + i * gap + (i === 2 ? fs * 0.35 : 0);
-      slam(c, lt, a, tp.x, y, () => {
-        if (o.c === '#FFFFFF') K.txt(c, s, 6, 6, { f: 'serif', s: fs, w: o.w, i: o.i, c: 'rgba(90,25,0,.45)', a: tp.a });
-        K.txt(c, s, 0, 0, { f: 'serif', s: fs * (i === 2 ? 1.1 : 1), w: o.w, i: o.i, c: o.c, a: tp.a });
-      }, { from: 1.25, d: 0.25 });
-    });
-    if (S.land) K.note(c, '(in sunglasses)', 136, tp.y + 3 * gap + 60, { p: clamp((lt - 1.9) / 0.4), s: 64, c: C.ink, rot: -0.04 });
-    else hand(c, '(in sunglasses)', tp.x, tp.y + 3 * gap + 50, { s: pk(S, 66, 0, 52), c: C.ink, p: clamp((lt - 1.9) / 0.4) });
-  }
-
-  // 28–32  end card
-  function shotEnd(c, S) {
-    const lt = S.lt; bgPaper(c);
-    const cvp = pk(S, { x: S.cx - 150, y: 1180, w: 400 }, { x: 470, y: 560, w: 470 }, { x: S.cx - 200, y: 770, w: 260 });
-    c.save(); c.globalAlpha = 0.6; rays(c, cvp.x, cvp.y, S.t, 'rgba(255,98,0,.08)'); c.restore();
-    popAt(c, lt, 0.0, cvp.x, cvp.y, () => K.cover(c, 0, 0, cvp.w, { rot: -0.05, t: S.t }), 0.35);
-    const wp = pk(S, { x: S.cx + 250, y: 1520, s: 0.55 }, { x: 860, y: 1000, s: 0.55 }, { x: S.cx + 190, y: 990, s: 0.4 });
-    const wq = E.outBack(clamp((lt - 0.4) / 0.35), 1.4);
-    if (wq > 0) { c.save(); c.translate(wp.x, wp.y); c.scale(wq, wq); wally(c, { x: 0, y: 0, s: wp.s, rot: 0.04, trunk: { bend: -0.7 + Math.sin(S.t * 5) * 0.25, lift: 0.9, curl: 0.3 }, earL: 0.08, earR: 0.08, sparkle: lt > 2.0 ? Math.sin(clamp((lt - 2.0) / 0.45) * Math.PI) : 0 }); c.restore(); }
-    const tp = pk(S, { x: S.cx, y: 400 }, { x: 1390, y: 360 }, { x: S.cx, y: 170 });
-    const ts = pk(S, 150, 130, 110), mw = pk(S, W - 100, 930, W - 100);
-    slam(c, lt, 0, tp.x, tp.y, () => heavy(c, "WALLY'S", 0, 0, { f: 'mono', s: ts, c: C.ink, maxW: mw }), { from: 1.5 });
-    slam(c, lt, 0.12, tp.x, tp.y + ts * 1.02, () => heavy(c, 'RWA TEXTBOOK', 0, 0, { f: 'mono', s: ts, c: C.orange, maxW: mw }), { from: 1.5 });
-    const gy = tp.y + ts * 1.02 + pk(S, 120, 110, 95);
-    K.words(c, 'Watch it. Play it. Read it.', tp.x, gy, { f: 'serif', s: pk(S, 56, 52, 46), w: 400, i: true, c: C.ink2, a: 'center', t: lt - 0.5, per: 0.07 });
-    const cy = gy + pk(S, 120, 110, 95);
-    popAt(c, lt, 1.0, tp.x, cy, () => K.chip(c, 'rwaf.xyz/guide', 0, 0, { s: pk(S, 50, 46, 42), fill: C.orange, c: '#FFFFFF', a: 'center', ls: 1, padX: 46, h: pk(S, 104, 96, 88), w: 700 }), 0.35);
-    const fy = pk(S, 1610, cy + 140, 1050), fx = pk(S, S.cx, tp.x, S.cx);
-    const fa = clamp((lt - 1.5) * 3);
-    if (fa > 0) {
-      c.save(); c.globalAlpha = fa;
-      const t1 = 'CREATED BY RWA FOUNDATION', t2 = '@wallycollection';
-      const fs = pk(S, 24, 22, 20);
-      const w1 = K.measure(c, t1, { f: 'mono', s: fs, w: 700, ls: 3 });
-      K.rwafMark(c, fx - w1 / 2 - 34, fy - fs * 0.4, 46, C.ink);
-      K.txt(c, t1, fx + 10, fy, { f: 'mono', s: fs, w: 700, c: C.ink, a: 'center', ls: 3 });
-      if (!S.sq) K.txt(c, t2, fx, fy + fs * 1.8, { f: 'mono', s: fs, w: 600, c: C.ink2, a: 'center', ls: 3 });
+  // 22.67 – 26.67  product shot: the cover turns on a mirror-black floor, light glides across it
+  function shotCover(c, S) {
+    const lt = S.lt;
+    const cp = pk(S, { x: S.cx, y: 960, w: 540 }, { x: 1300, y: 495, w: 380 }, { x: S.cx, y: 540, w: 350 });
+    bgNight(c, S, cp.x, cp.y); bokeh(c, S, 24, 0.6); haze(c, S, 0.7);
+    const ang = lerp(-0.62, 0.12, E.inOutSine(clamp(lt / 4))), sx = Math.cos(ang);
+    const ch = cp.w * 1.3, floor = cp.y + ch / 2;
+    const drawCover = (alpha) => {
+      c.save(); c.globalAlpha *= alpha; c.translate(cp.x, cp.y); c.scale(sx, 1); K.cover(c, 0, 0, cp.w, { t: S.t });
+      c.fillStyle = `rgba(0,0,0,${clamp(Math.abs(ang) * 0.6)})`; c.fillRect(-cp.w / 2, -ch / 2, cp.w, ch);
+      const sp = clamp((lt - 0.8) / 1.6);
+      if (sp > 0 && sp < 1) { const bx = lerp(-cp.w, cp.w, sp); const g = c.createLinearGradient(bx - cp.w * 0.25, 0, bx + cp.w * 0.25, 0); g.addColorStop(0, 'rgba(255,245,225,0)'); g.addColorStop(0.5, 'rgba(255,245,225,.38)'); g.addColorStop(1, 'rgba(255,245,225,0)'); c.save(); c.beginPath(); c.rect(-cp.w / 2, -ch / 2, cp.w, ch); c.clip(); c.fillStyle = g; c.fillRect(-cp.w / 2, -ch / 2, cp.w, ch); c.restore(); }
       c.restore();
+    };
+    c.save(); c.translate(0, floor * 2); c.scale(1, -1); drawCover(0.22); c.restore();
+    const fg = c.createLinearGradient(0, floor, 0, floor + ch * 0.6); fg.addColorStop(0, 'rgba(7,6,5,.25)'); fg.addColorStop(1, 'rgba(7,6,5,1)'); c.fillStyle = fg; c.fillRect(0, floor, W, ch * 0.6 + 2);
+    c.fillStyle = 'rgba(241,217,162,.25)'; c.fillRect(cp.x - cp.w, floor, cp.w * 2, 1.5);
+    drawCover(1);
+    const tp = pk(S, { x: S.cx, y: 380, a: 'center' }, { x: 140, y: 470, a: 'left' }, { x: S.cx, y: 140, a: 'center' });
+    reveal(c, lt, 0.4, 0.9, () => goldText(c, "WALLY'S RWA TEXTBOOK", tp.x, tp.y, { f: 'mono', w: 600, st: 'normal', s: pk(S, 44, 42, 38), ls: pk(S, 8, 8, 6), a: tp.a, maxW: pk(S, W - 80, 820, W - 80), sweep: clamp((lt - 1.0) / 1.5) }));
+    const by = pk(S, 1560, 570, 1010);
+    reveal(c, lt, 1.2, 0.9, () => line(c, '49 pages. 11 chapters. Zero hype.', tp.x, by, { s: pk(S, 52, 46, 44), a: tp.a }));
+  }
+
+  // 26.67 – 32  end card: read responsibly
+  function shotEnd(c, S) {
+    const lt = S.lt; bgNight(c, S); haze(c, S, 0.9); bokeh(c, S, 30, 0.8); leak(c, S, 0.45);
+    reveal(c, lt, 0.15, 0.8, () => line(c, 'Read responsibly.', S.cx, S.cy + 10, { s: 76 }), { out: 1.5, outD: 0.4 });
+    const t2 = lt - 2 * B;
+    if (t2 > 0) {
+      const y0 = pk(S, S.cy - 320, S.cy - 240, S.cy - 280);
+      reveal(c, t2, 0, 0.9, () => K.headMark(c, S.cx, y0, pk(S, 170, 140, 140), GOLD), { blur: 16 });
+      reveal(c, t2, 0.2, 0.9, () => K.txt(c, "WALLY'S", S.cx, y0 + 160, { f: 'mono', s: pk(S, 96, 86, 84), w: 800, c: CREAM, a: 'center', ls: 6 }));
+      reveal(c, t2, 0.35, 0.9, () => goldText(c, 'RWA TEXTBOOK', S.cx, y0 + 160 + pk(S, 100, 90, 88), { f: 'mono', w: 800, st: 'normal', s: pk(S, 96, 86, 84), ls: 6, maxW: W - 80, sweep: clamp((t2 - 0.6) / 1.4), glow: 20 }));
+      const gy = y0 + 160 + pk(S, 190, 170, 166);
+      reveal(c, t2, 0.8, 0.8, () => line(c, 'Watch it. Play it. Read it.', S.cx, gy, { s: pk(S, 48, 42, 42), c: DIM }));
+      reveal(c, t2, 1.2, 0.8, () => {
+        const s = 'rwaf.xyz/guide', fs = pk(S, 40, 34, 36), w = K.measure(c, s, { f: 'mono', s: fs, w: 600, ls: 2 }) + 80, h = fs * 2.1, yy = gy + pk(S, 100, 82, 84);
+        K.rr(c, S.cx - w / 2, yy - h / 2, w, h, h / 2); c.lineWidth = 2.5; c.strokeStyle = GOLD; c.stroke();
+        K.txt(c, s, S.cx, yy + fs * 0.36, { f: 'mono', s: fs, w: 600, c: GOLD2, a: 'center', ls: 2 });
+      });
+      const fy = pk(S, 1530, H - 190, H - 80);
+      reveal(c, t2, 1.7, 0.8, () => {
+        caps(c, 'CREATED BY RWA FOUNDATION  ·  @wallycollection', S.cx, fy, { s: pk(S, 17, 17, 16), ls: 4, c: DIM });
+        caps(c, 'EDUCATIONAL CONTENT ONLY. NOT FINANCIAL ADVICE.', S.cx, fy + 32, { s: 13, ls: 4, c: 'rgba(243,235,221,.4)' });
+      });
     }
   }
 
+  // [start, end, draw, fade-in from black (s), fade-out to black (s)]
   const SHOTS = [
-    [0, 2, shotNeon], [2, 3.85, shotPromise], [3.85, 6, shotTextbook], [6, 8, shotNo], [8, 14, shotNotes],
-    [14, 16, shotNumbers], [16, 19, shotWatch], [19, 22, shotPlay], [22, 25, shotRead], [25, 28, shotHero], [28, 32, shotEnd],
+    [0, 4 * B, shotOpen, 0.7, 0.3], [4 * B, 8 * B, shotGlasses, 0.3, 0.25], [8 * B, 12 * B, shotCoin, 0.3, 0.25], [12 * B, 16 * B, shotPage, 0.3, 0.12],
+    [16 * B, 20 * B, shotWords, 0, 0], [20 * B, 24 * B, shotNo, 0, 0.2], [24 * B, 28 * B, shotReveal, 0.15, 0], [28 * B, 34 * B, shotTrio, 0, 0],
+    [34 * B, 40 * B, shotCover, 0, 0.35], [40 * B, DUR, shotEnd, 0.4, 0.6],
   ];
-  // camera hits (time, shake px) and white flashes on the big downbeats
-  const HITS = [[4.0, 22], [4.5, 8], [6.0, 12], [7.0, 12], [14.0, 14], [14.5, 14], [15.0, 14], [15.5, 18], [20.5, 16], [21.5, 10], [28.0, 12]];
-  const FLASH = [4.0, 14.0, 16.0, 25.0, 28.0];
 
   function renderAt(t) {
     t = clamp(t, 0, DUR - 1e-6);
     let i = 0; while (i < SHOTS.length - 1 && t >= SHOTS[i + 1][0]) i++;
-    const [a, b, fn] = SHOTS[i];
+    const [a, b, fn, fin, fout] = SHOTS[i];
     const S = { t, lt: t - a, d: b - a, W, H, cx: W / 2, cy: H / 2, port: H > W * 1.2, land: W > H * 1.2 };
     S.sq = !S.port && !S.land;
-    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
     ctx.fillStyle = '#000'; ctx.fillRect(0, 0, W, H);
-    // camera: punch-in on every cut, a soft pulse on every beat while the groove plays, shakes on hits
-    let z = 1 + 0.06 * Math.exp(-S.lt * 14);
-    if (t >= 4 && t < 25) { const bt = t % B; z += 0.012 * Math.exp(-bt * 12); }
-    let sx = 0, sy = 0; for (const [ht, amp] of HITS) { const s = K.shake(t, ht, amp, 0.3, ht); sx += s.x; sy += s.y; }
-    ctx.save(); ctx.translate(S.cx + sx, S.cy + sy); ctx.scale(z, z); ctx.translate(-S.cx, -S.cy);
+    // camera: a slow drift on everything; a soft kick on each beat while the drums play
+    let z = 1 + S.lt * 0.008;
+    if (t >= 16 * B && t < 34 * B) z += 0.008 * Math.exp(-(t % B) * 10);
+    ctx.save(); ctx.translate(S.cx, S.cy); ctx.scale(z, z); ctx.translate(-S.cx, -S.cy);
     fn(ctx, S);
     ctx.restore();
-    for (const ft of FLASH) { const u = t - ft; if (u >= 0 && u < 0.14) { ctx.fillStyle = `rgba(255,255,255,${0.75 * (1 - u / 0.14)})`; ctx.fillRect(0, 0, W, H); } }
+    grade(ctx, S);
+    const black = Math.max(fin ? 1 - clamp(S.lt / fin) : 0, fout ? clamp((S.lt - (S.d - fout)) / fout) : 0);
+    if (black > 0) { ctx.fillStyle = `rgba(0,0,0,${E.inOutSine(black)})`; ctx.fillRect(0, 0, W, H); }
   }
 
-  async function setup(canvas, fmt) {
-    FMT = FORMATS[fmt] ? fmt : '9x16'; [W, H] = FORMATS[FMT];
-    cv = canvas; cv.width = W; cv.height = H; ctx = cv.getContext('2d');
+  async function setup(canvasEl, fmt) {
+    const f = FORMATS[fmt] ? fmt : '9x16'; [W, H] = FORMATS[f];
+    cv = canvasEl; cv.width = W; cv.height = H; ctx = cv.getContext('2d');
+    bufA = canvas(W, H); bufB = canvas(W, H);
     if (!filmCv) {
-      filmCv = document.createElement('canvas'); filmCv.width = 1280; filmCv.height = 720;
-      window.FILM.init(filmCv);
-      const fonts = ['900 40px Archivo', '700 40px Lora', 'italic 700 40px Lora', 'italic 400 40px Lora', '400 40px Lora', '700 40px Caveat', '900 40px "Geist Mono"', '700 40px "Geist Mono"', '600 40px "Geist Mono"', '40px "Noto Color Emoji"'];
-      await Promise.all(fonts.map((f) => document.fonts.load(f, 'Aa🚀🤞🌯')));
+      filmCv = canvas(1280, 720); window.FILM.init(filmCv);
+      pageCv = canvas(820, 1000);
+      for (let k = 0; k < 6; k++) { // film grain tiles
+        const g = canvas(512, 512), x = g.getContext('2d'), id = x.createImageData(512, 512), r = K.rand(k + 11);
+        for (let i = 0; i < id.data.length; i += 4) { const v = 128 + (r() - 0.5) * 120; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+        x.putImageData(id, 0, 0); grain.push(g);
+      }
+      const fonts = ['300 40px Archivo', '900 40px Archivo', '700 40px Lora', 'italic 700 40px Lora', 'italic 400 40px Lora', '400 40px Lora', '700 40px Caveat', '800 40px "Geist Mono"', '700 40px "Geist Mono"', '600 40px "Geist Mono"', '500 40px "Geist Mono"'];
+      await Promise.all(fonts.map((q) => document.fonts.load(q, 'Aa')));
       await Promise.all([K.loadAssets(), loadMascots()]);
     }
-    K.paper(W, H); K.paper(W, H, '#1C150F', 9);
     for (const k in fitCache) delete fitCache[k];
   }
 
-  window.TRAILER = { DUR, BPM: 120, FORMATS, setup, renderAt, get size() { return [W, H]; } };
+  window.TRAILER = { DUR, BPM: 90, FORMATS, setup, renderAt, get size() { return [W, H]; } };
 })();
