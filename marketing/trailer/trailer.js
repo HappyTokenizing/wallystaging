@@ -95,7 +95,7 @@
     const v = c.createRadialGradient(S.cx, S.cy, Math.min(W, H) * 0.35, S.cx, S.cy, Math.hypot(W, H) * 0.62); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(0,0,0,.72)');
     c.fillStyle = v; c.fillRect(0, 0, W, H);
     const fr = Math.floor(S.t * 24), gi = grain[fr % grain.length], ox = Math.floor(K.hash(fr + 1) * 256), oy = Math.floor(K.hash(fr + 7) * 256);
-    c.save(); c.globalCompositeOperation = 'overlay'; c.globalAlpha = 0.45;
+    c.save(); c.globalCompositeOperation = 'overlay'; c.globalAlpha = 0.3;
     for (let y = -oy; y < H; y += 512) for (let x = -ox; x < W; x += 512) c.drawImage(gi, x, y);
     c.restore();
     if (S.land) { c.fillStyle = '#000'; c.fillRect(0, 0, W, 130); c.fillRect(0, H - 130, W, 130); }
