@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Wally Trailer</title>
+<link rel="stylesheet" href="../../guide/fonts/fonts.css">
+<style>
+  :root { --bg: #F4F1EA; --ink: #201A13; --orange: #FF6200; --line: #D7CFBE; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 "Geist Mono", ui-monospace, monospace; }
+  .bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+  .bar b { margin-right: auto; letter-spacing: .08em; }
+  button { font: inherit; border: 2px solid var(--ink); background: #fff; color: var(--ink); border-radius: 999px; padding: 6px 14px; cursor: pointer; }
+  button[aria-pressed="true"] { background: var(--orange); border-color: var(--orange); color: #fff; }
+  .stage { display: grid; place-items: center; padding: 16px; height: calc(100vh - 64px); }
+  canvas { max-width: 100%; max-height: 100%; box-shadow: 0 20px 60px rgba(0,0,0,.25); border-radius: 12px; background: #000; }
+  input[type=range] { width: min(420px, 100%); accent-color: var(--orange); }
+</style>
+</head>
+<body>
+<div class="bar">
+  <b>WALLY'S RWA TEXTBOOK · TRAILER</b>
+  <button data-fmt="9x16" aria-pressed="true">9:16</button>
+  <button data-fmt="16x9" aria-pressed="false">16:9</button>
+  <button data-fmt="1x1" aria-pressed="false">1:1</button>
+  <button id="play">▶ Play</button>
+  <input id="seek" type="range" min="0" max="32" step="0.01" value="0" aria-label="Seek">
+  <span id="time">0.00</span>
+</div>
+<div class="stage"><canvas id="cv"></canvas></div>
+<audio id="music" src="soundtrack.m4a" preload="auto"></audio>
+
+<script src="../../guide/film/wally-rig.js"></script>
+<script src="../../guide/film/headmark.js"></script>
+<script src="../../guide/film/rwafmark.js"></script>
+<script src="../../guide/film/assets.js"></script>
+<script src="../../guide/film/timeline.js"></script>
+<script src="../../guide/film/kit.js"></script>
+<script>K.ASSET_BASE = '../../guide/assets/';</script>
+<script src="../../guide/film/icons.js"></script>
+<script src="../../guide/film/scenes/intro.js"></script>
+<script src="../../guide/film/scenes/ch01.js"></script>
+<script src="../../guide/film/scenes/ch02.js"></script>
+<script src="../../guide/film/scenes/ch03.js"></script>
+<script src="../../guide/film/scenes/ch04.js"></script>
+<script src="../../guide/film/scenes/ch05.js"></script>
+<script src="../../guide/film/scenes/ch06.js"></script>
+<script src="../../guide/film/scenes/ch07.js"></script>
+<script src="../../guide/film/scenes/ch08.js"></script>
+<script src="../../guide/film/scenes/ch09.js"></script>
+<script src="../../guide/film/scenes/ch10.js"></script>
+<script src="../../guide/film/scenes/ch11.js"></script>
+<script src="../../guide/film/scenes/outro.js"></script>
+<script src="../../guide/film/ads.js"></script>
+<script src="../../guide/film/engine.js"></script>
+<script src="trailer.js"></script>
+<script>
+(async () => {
+  const cv = document.getElementById('cv'), audio = document.getElementById('music');
+  const seek = document.getElementById('seek'), time = document.getElementById('time'), play = document.getElementById('play');
+  const q = new URLSearchParams(location.search);
+  let fmt = q.get('fmt') || '9x16', t = 0, playing = false, t0 = 0, p0 = 0;
+  await TRAILER.setup(cv, fmt);
+  window.TRAILER_READY = true;
+  if (q.has('render')) return; // the frame renderer drives TRAILER.renderAt itself
+  const now = () => (audio.readyState >= 2 && !audio.paused ? audio.currentTime : p0 + (performance.now() - t0) / 1000);
+  function frame() {
+    if (playing) { t = now(); if (t >= TRAILER.DUR) { playing = false; t = TRAILER.DUR; audio.pause(); play.textContent = '▶ Play'; } }
+    TRAILER.renderAt(t); seek.value = t; time.textContent = t.toFixed(2);
+    requestAnimationFrame(frame);
+  }
+  play.onclick = () => {
+    playing = !playing; play.textContent = playing ? '❚❚ Pause' : '▶ Play';
+    if (playing) { if (t >= TRAILER.DUR) t = 0; p0 = t; t0 = performance.now(); audio.currentTime = t; audio.play().catch(() => {}); } else audio.pause();
+  };
+  seek.oninput = () => { t = +seek.value; p0 = t; t0 = performance.now(); audio.currentTime = t; };
+  document.querySelectorAll('[data-fmt]').forEach((b) => {
+    b.setAttribute('aria-pressed', String(b.dataset.fmt === fmt));
+    b.onclick = async () => { fmt = b.dataset.fmt; document.querySelectorAll('[data-fmt]').forEach((x) => x.setAttribute('aria-pressed', String(x === b))); await TRAILER.setup(cv, fmt); };
+  });
+  frame();
+})();
+</script>
+</body>
+</html>
