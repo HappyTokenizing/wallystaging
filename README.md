@@ -10,6 +10,10 @@ The site uses separate static pages with one main content region per response: `
 
 Vercel's `outputDirectory` is explicitly `.` because the generated HTML and assets live at the repository root. Keep this setting with the build command; Vercel otherwise expects a `public` directory after the build.
 
+### Homepage comparison (staging)
+
+`/1/`, `/2/` and `/3/` are temporary review copies of the homepage: **1 Original** (the long-form homepage before 13 October 2026), **2 Simplified** (the current `/`) and **3 Combined**. Each option's `<main id="page-home">` lives in `templates/home-variants/`; `homeVariants` in `scripts/site-pages.mjs` lists them. `npm run build` renders each inside the normal homepage shell with a fixed option switcher (`assets/home-compare.css`). They are `noindex`, excluded from the sitemap, and leave `/` unchanged. Option 3 styles live in `templates/site.html`, scoped to `.home-plus`. Keep these pages off production; [docs/homepage-comparison.md](docs/homepage-comparison.md) covers staging hosting, promoting the chosen option and removing the comparison.
+
 `assets/site-chrome.css` provides consistent header/logo sizing across the site, Research reports and the Textbook. The site build applies shared navigation, metadata and favicon references to the generated Textbook HTML; it leaves the film, game and book content untouched. Run `npm run build` after regenerating `/guide/` from its external source. Preserve report partner credits in report content and charts; the navigation logo always represents the home link.
 
 Media-kit downloads are same-origin files in `assets/brand/`: eight original PNG assets in one ZIP, individual PNGs and the original PDF guidelines. The `download` links and attachment headers avoid timed multi-download and data-URL restrictions. The favicon, ICO and Apple touch icon are files at the site root. Admin is excluded from the sitemap and marked `noindex,nofollow`; this is indexing guidance, not authentication.

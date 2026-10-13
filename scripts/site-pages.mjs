@@ -18,4 +18,11 @@ export const pages=[
  {id:'marketReport',path:'/research/market-structure-aug-2026/',title:'Market Structure Report — August 2026 · RWA Foundation',description:'Read the August 2026 Market Structure Report with Token Terminal, covering stablecoins, tokenized funds, private credit, commodities and equities.'},
  {id:'guide',path:'/guide/',title:"Wally's RWA Textbook · RWA Foundation",description:'Learn about tokenized real-world assets with Wally’s RWA Textbook: watch the film, play Tokens, Please, or read the illustrated lessons.'}
 ];
+// Staging comparison copies of the homepage. Each swaps one option from templates/home-variants/
+// into the homepage, adds the option switcher and stays out of the sitemap and search results.
+export const homeVariants=[
+ {id:'1',path:'/1/',label:'Original',title:'Homepage option 1: Original · RWA Foundation',description:'Homepage option 1 for review: the original long-form RWA Foundation homepage.',noindex:true},
+ {id:'2',path:'/2/',label:'Simplified',title:'Homepage option 2: Simplified · RWA Foundation',description:'Homepage option 2 for review: the simplified RWA Foundation homepage with section links.',noindex:true},
+ {id:'3',path:'/3/',label:'Combined',title:'Homepage option 3: Combined · RWA Foundation',description:'Homepage option 3 for review: the combined RWA Foundation homepage.',noindex:true}
+];
 export const aliases={'/foundation/':'/members/','/brand/':'/media-kit/','/brandkit/':'/media-kit/','/eco/':'/ecosystem/','/careers/':'/jobs/','/articles/':'/research/','/home/':'/'};
