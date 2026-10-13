@@ -1,0 +1,528 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Ecosystem Submissions Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=Instrument+Sans:wght@400..700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F4F1EA;--bg2:#FAF8F3;--card:#fff;--line:#E6E0D3;--line2:#D7CFBE;--text:#201A13;--text2:#5C5447;--text3:#98907F;--orange:#FF6200;--orange2:#D85300;--green:#0E9F6E;--night:#140E08;
+  --display:'Archivo',sans-serif;--body:'Instrument Sans',sans-serif;--mono:'Geist Mono',ui-monospace,monospace}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#000;overflow:hidden}
+#stage{position:relative;width:1920px;height:1080px;overflow:hidden;background:var(--bg);font-family:var(--body);color:var(--text)}
+#stage section{position:absolute;inset:0;display:none}
+/* The walkthrough stays laid out so the iframe keeps its 1440×900 viewport. */
+#stage #s3{display:block;visibility:hidden}
+.display{font-family:var(--display);font-weight:820;font-stretch:116%;text-transform:uppercase;letter-spacing:-.022em;line-height:.99}
+.mask{display:block;overflow:hidden;padding:.04em 0 .02em}
+.mask>span{display:block}
+.kicker{font-family:var(--mono);font-weight:500;font-size:26px;letter-spacing:.22em;text-transform:uppercase;color:var(--text3);display:flex;align-items:center;gap:18px}
+.kicker::before{content:'';width:44px;height:3px;background:var(--orange);border-radius:2px}
+.o{color:var(--orange)}
+
+/* background */
+#bg{position:absolute;inset:0;background:radial-gradient(circle,rgba(32,26,19,.075) 1.6px,transparent 2px) 0 0/38px 38px,var(--bg)}
+#glow{position:absolute;width:1100px;height:1100px;border-radius:50%;background:radial-gradient(circle,rgba(255,98,0,.13),rgba(255,98,0,0) 65%);left:0;top:0}
+
+/* scene 1 */
+#s1 .wrap{position:absolute;left:0;right:0;top:170px;display:flex;flex-direction:column;align-items:center;text-align:center}
+#s1 .ele{width:190px;height:auto}
+#s1 .kicker{margin-top:34px}
+#s1 h1{font-size:124px;margin-top:30px}
+#s1 .sub{font-size:38px;color:var(--text2);margin-top:34px}
+#s1 .sub b{color:var(--text);font-weight:600}
+
+/* scene 2 */
+#s2{background:var(--night)}
+#wall{position:absolute;left:50%;top:50%;width:3000px;margin-left:-1500px;transform-origin:50% 0}
+.row{position:relative;height:132px;margin-bottom:20px;white-space:nowrap}
+.row .strip{position:absolute;left:0;top:0;display:flex;gap:20px}
+.tile{width:132px;height:132px;flex:none;border-radius:26px;background:#fff;display:flex;align-items:center;justify-content:center;padding:24px}
+.tile.wm{padding:12px}
+.tile.dark{background:#171b24}
+.tile img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse 62% 58% at 50% 50%,rgba(20,14,8,.94) 0%,rgba(20,14,8,.86) 38%,rgba(20,14,8,.35) 78%,rgba(20,14,8,.2) 100%)}
+#count{position:absolute;left:0;right:0;top:300px;text-align:center;color:#fff}
+#count .num{font-size:270px;font-variant-numeric:tabular-nums;line-height:.9}
+#count .lbl{font-size:44px;color:rgba(244,241,234,.82);margin-top:34px}
+#missing{position:absolute;left:0;right:0;top:300px;text-align:center;color:#fff}
+#missing h2{font-size:190px}
+
+/* scene 3 */
+#win{position:absolute;left:0;top:0;width:1440px;height:952px;border-radius:18px;overflow:hidden;background:#fff;transform-origin:0 0;box-shadow:0 70px 140px -40px rgba(32,26,19,.5),0 0 0 1px rgba(32,26,19,.1)}
+#win .chrome{position:relative;height:52px;background:#ECE7DD;border-bottom:1px solid #DDD6C8;display:flex;align-items:center;padding:0 20px}
+#win .dots{display:flex;gap:9px}
+#win .dots i{width:13px;height:13px;border-radius:50%;background:#D6CFC1;display:block}
+#win .dots i:nth-child(1){background:#F0715F}#win .dots i:nth-child(2){background:#F2BE4F}#win .dots i:nth-child(3){background:#5FC46B}
+#win .url{position:absolute;left:50%;top:10px;width:560px;margin-left:-280px;height:32px;border-radius:9px;background:#FAF8F3;border:1px solid #DDD6C8;display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px;color:var(--text)}
+#win .url svg{width:13px;height:13px;stroke:var(--text2);fill:none;stroke-width:2.2}
+#urlcaret{width:1.5px;height:17px;background:var(--orange);margin-left:-6px}
+#loadbar{position:absolute;left:0;bottom:-1px;height:3px;background:var(--orange);width:0}
+#win .content{position:relative;width:1440px;height:900px;background:var(--bg)}
+#site{position:absolute;left:0;top:0;width:1440px;height:900px;border:0;display:block}
+.pill{position:absolute;left:58px;top:46px;display:flex;align-items:center;gap:20px;padding:14px 34px 14px 14px;border-radius:999px;background:var(--text);color:#fff;font-size:36px;font-weight:600;letter-spacing:-.01em;box-shadow:0 22px 50px -18px rgba(20,14,8,.6);white-space:nowrap}
+.pill .n{width:58px;height:58px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-family:var(--display);font-weight:820;font-size:30px}
+.pill.ok .n{background:var(--green)}
+.pill .n svg{width:30px;height:30px;stroke:#fff;fill:none;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round}
+.pill .u{font-family:var(--mono);font-weight:600;font-size:32px;color:#FFB27F;letter-spacing:-.01em}
+
+/* scene 4 */
+#s4 .head{position:absolute;left:0;right:0;top:92px;display:flex;flex-direction:column;align-items:center;text-align:center}
+#s4 .kicker{color:var(--orange2)}
+#s4 h2{font-size:70px;margin-top:22px}
+#grid{position:absolute;left:50%;top:330px;width:1440px;margin-left:-720px;display:grid;grid-template-columns:repeat(6,1fr);row-gap:36px}
+.gt{display:flex;flex-direction:column;align-items:center;gap:16px}
+.gt .lg{width:156px;height:156px;border-radius:30px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:30px;box-shadow:0 18px 40px -24px rgba(32,26,19,.35)}
+.gt .lg.wm{padding:14px}
+.gt .lg.dark{background:#171b24;border-color:#292f3a}
+.gt .lg img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+.gt .nm{font-size:23px;font-weight:600;color:var(--text);white-space:nowrap}
+.gt.you .lg{background:transparent;border:3px dashed var(--orange);box-shadow:none;position:relative}
+.gt.you .lg svg{width:64px;height:64px;stroke:var(--orange);stroke-width:5;stroke-linecap:round;fill:none}
+.gt.you .nm{color:var(--orange2)}
+#youfill{position:absolute;inset:-3px;border-radius:30px;background:var(--orange);display:flex;align-items:center;justify-content:center}
+#youfill svg{stroke:#fff}
+#expand{position:absolute;background:var(--orange);display:none}
+
+/* scene 5 */
+#s5{background:var(--orange);color:#fff}
+#s5 .wrap{position:absolute;left:0;right:0;top:118px;display:flex;flex-direction:column;align-items:center;text-align:center}
+#s5 .ele{width:230px;height:auto}
+#s5 h2{font-size:116px;margin-top:40px}
+#s5 .cta{margin-top:46px;display:flex;align-items:center;gap:22px;background:#fff;color:var(--text);border-radius:999px;padding:24px 30px 24px 44px;font-family:var(--mono);font-weight:600;font-size:60px;letter-spacing:-.02em;box-shadow:0 30px 70px -26px rgba(20,14,8,.55)}
+#s5 .cta .arr{width:74px;height:74px;border-radius:50%;background:var(--text);display:flex;align-items:center;justify-content:center}
+#s5 .cta .arr svg{width:36px;height:36px;stroke:#fff;stroke-width:3.4;fill:none;stroke-linecap:round;stroke-linejoin:round}
+#s5 .note{margin-top:42px;font-size:34px;color:rgba(255,255,255,.92)}
+#wally{position:absolute;right:56px;bottom:-60px;width:330px;height:auto;transform-origin:50% 100%}
+
+/* transition */
+#wipe{position:absolute;inset:0;background:var(--orange);display:none;align-items:center;justify-content:center;z-index:50}
+#wipe img{width:260px}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><div id="glow"></div></div>
+
+  <section id="s1">
+    <div class="wrap">
+      <img class="ele" id="s1ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <div class="kicker" id="s1kick">rwaf.xyz · Ecosystem directory</div>
+      <h1 class="display" id="s1h"><span class="mask"><span>Get your project</span></span><span class="mask"><span>on the <span class="o">RWA map.</span></span></span></h1>
+      <p class="sub" id="s1sub">Ecosystem submissions are open at <b>rwaf.xyz</b></p>
+    </div>
+  </section>
+
+  <section id="s2">
+    <div id="wall"></div>
+    <div id="vig"></div>
+    <div id="count"><div class="num display" id="num">0</div><div class="lbl" id="numlbl">companies &amp; initiatives already in the directory</div></div>
+    <div id="missing"><h2 class="display"><span class="mask"><span>Is yours</span></span><span class="mask"><span class="o">missing?</span></span></h2></div>
+  </section>
+
+  <section id="s3">
+    <div id="win">
+      <div class="chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <div class="url"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="urltext"></span><span id="urlcaret"></span></div>
+        <div id="loadbar"></div>
+      </div>
+      <div class="content"><iframe id="site" title="RWA ecosystem directory" src="about:blank"></iframe></div>
+    </div>
+    <div class="pill" data-pill="1"><span class="n">1</span>Go to <span class="u">rwaf.xyz/ecosystem</span></div>
+    <div class="pill" data-pill="2"><span class="n">2</span>Add your project details</div>
+    <div class="pill" data-pill="3"><span class="n">3</span>Submit for review</div>
+    <div class="pill ok" data-pill="4"><span class="n"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.2 4.2L19 7"/></svg></span>Queued for review by the RWA Foundation team</div>
+  </section>
+
+  <section id="s4">
+    <div class="head">
+      <div class="kicker" id="s4kick">New in the directory</div>
+      <h2 class="display" id="s4h"><span class="mask"><span>Recently added from submissions</span></span></h2>
+    </div>
+    <div id="grid"></div>
+  </section>
+  <div id="expand"></div>
+
+  <section id="s5">
+    <div class="wrap">
+      <img class="ele" id="s5ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <h2 class="display" id="s5h"><span class="mask"><span>Submit your project</span></span></h2>
+      <div class="cta" id="s5cta">rwaf.xyz/ecosystem<span class="arr"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      <p class="note" id="s5note">Every submission is reviewed before it appears in the directory.</p>
+    </div>
+    <img id="wally" src="/assets/brand/wally-3d.png" alt="">
+  </section>
+
+  <div id="wipe"><img id="wipeele" src="/assets/brand/rwa-elephant-white.png" alt=""></div>
+</div>
+
+<script>
+/* Every visual is a pure function of time t (seconds), so render.mjs can step
+   frames deterministically. The walkthrough drives the real /ecosystem/ page in
+   a same-origin iframe; its own transitions are disabled and animated here. */
+const FPS=30, DURATION=31.5;
+
+// Recently added profiles whose listings came from the project-submission form.
+const ADDED=['sunrise','fission','rwa-space','arch-lending','eqx-labs','fractionalised-world','serotonin','stork','nysa-finance','trustlogic','hyve','blockfy','metalex','codetech','easymm','vs1-finance','fbyt'];
+
+const T={
+  s1:[0,3.65], wipe1:[3.25,3.65,3.75,4.15], s2:[3.65,8.25], s3:[7.7,22.6], wipe2:[22.15,22.55,22.65,23.05], s4:[22.55,27.5], s5:[26.9,DURATION],
+  enter:[7.75,8.5], url:[8.45,9.1], load:[9.1,9.45],
+  heroHover:10.3, heroClick:10.6, open:[10.85,11.2],
+  fields:[
+    {id:'seName',click:11.45,type:[11.6,12.2],text:'Your Project'},
+    {id:'seBlurb',click:12.5,type:[12.62,13.9],text:'Tokenized real estate for global investors'},
+    {id:'seType',click:14.25,drop:[14.3,14.95],value:'Issuer (tokenizes real-world assets)'},
+    {id:'seRegion',click:15.35,drop:[15.4,15.85],value:'International'},
+    {id:'seUrl',click:16.15,type:[16.3,16.98],text:'https://yourproject.xyz'},
+    {id:'seEmail',click:17.25,type:[17.4,18.02],text:'team@yourproject.xyz'},
+  ],
+  submitClick:18.75, success:19.45,
+  pills:[[8.3,10.9],[10.9,18.1],[18.1,19.5],[19.5,22.4]],
+};
+
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const prog=(t,a,b)=>clamp((t-a)/(b-a));
+const lerp=(a,b,p)=>a+(b-a)*p;
+const E={
+  lin:p=>p,
+  out3:p=>1-Math.pow(1-p,3),
+  out5:p=>1-Math.pow(1-p,5),
+  in3:p=>p*p*p,
+  io3:p=>p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2,
+  back:p=>{const c1=1.6,c3=c1+1;return 1+c3*Math.pow(p-1,3)+c1*Math.pow(p-1,2);},
+};
+const $=s=>document.querySelector(s);
+const show=(el,on,display='block')=>{el.style.display=on?display:'none';};
+const inRange=(t,[a,b])=>t>=a&&t<b;
+// Holds `initial` until each move starts, then eases to its target.
+function track(t,initial,moves){
+  let v={...initial};
+  for(const [a,b,target,ease=E.io3] of moves){
+    if(t<a)break;
+    const p=ease(prog(t,a,b)),next={};
+    for(const k in v)next[k]=k in target?lerp(v[k],target[k],p):v[k];
+    v=next;
+  }
+  return v;
+}
+function reveal(el,t,start,dur=.45,ease=E.out5){
+  const p=ease(prog(t,start,start+dur));
+  el.style.transform=`translateY(${(1-p)*110}%)`;
+}
+function fadeUp(el,t,start,dur=.45,dist=30){
+  const p=E.out3(prog(t,start,start+dur));
+  el.style.opacity=p;el.style.transform=`translateY(${(1-p)*dist}px)`;
+}
+function hash(i){const x=Math.sin(i*127.1+311.7)*43758.5453;return x-Math.floor(x);}
+// Character i of a typed string appears at a slightly irregular, monotonic time.
+function charTimes(text,[a,b]){
+  const n=text.length,step=(b-a)/n,out=[];
+  for(let i=0;i<n;i++)out.push(a+step*i+step*.55*(hash(i+n)-.5));
+  return out;
+}
+function typed(text,range,t){return text.slice(0,charTimes(text,range).filter(c=>c<=t).length);}
+
+/* ---------- setup ---------- */
+let S=null; // iframe handles and measured page geometry
+function seeded(arr,seed){
+  const a=arr.slice();let s=seed;
+  for(let i=a.length-1;i>0;i--){s=(s*9301+49297)%233280;const j=Math.floor(s/233280*(i+1));[a[i],a[j]]=[a[j],a[i]];}
+  return a;
+}
+function tileHTML(logo,cls){
+  const c=[cls,logo.shape==='wordmark'?'wm':'',logo.background==='dark'?'dark':''].filter(Boolean).join(' ');
+  return `<div class="${c}"><img src="${logo.src}" alt=""></div>`;
+}
+// Lazy images below the fold never load, so wait for eager ones with a cap.
+function imagesLoaded(doc,ms=8000){
+  const eager=[...doc.images].filter(img=>img.loading!=='lazy'||img.getBoundingClientRect().top<doc.documentElement.clientHeight);
+  const all=Promise.all(eager.map(img=>img.complete?0:new Promise(r=>{img.addEventListener('load',r);img.addEventListener('error',r);})));
+  return Promise.race([all,new Promise(r=>setTimeout(r,ms))]);
+}
+async function setupWall(profiles){
+  const usable=profiles.filter(p=>p.directoryStatus==='current'&&p.logo&&/\.(svg|png|jpe?g|webp)$/i.test(p.logo.src||'')&&!ADDED.includes(p.id));
+  const pool=seeded(usable,2026),rows=9,per=20,wall=$('#wall');
+  let html='';
+  for(let r=0;r<rows;r++){
+    const items=pool.slice(r*per,(r+1)*per).map(p=>tileHTML(p.logo,'tile')).join('');
+    html+=`<div class="row"><div class="strip">${items}${items}</div></div>`;
+  }
+  wall.innerHTML=html;
+}
+function setupGrid(byId){
+  const tiles=ADDED.map(id=>{const p=byId[id];return `<div class="gt">${tileHTML(p.logo,'lg')}<div class="nm">${p.name}</div></div>`;});
+  tiles.push(`<div class="gt you"><div class="lg"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><div id="youfill"><svg viewBox="0 0 24 24" style="width:64px;height:64px;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;fill:none"><path d="M5 12.5l4.2 4.2L19 7"/></svg></div></div><div class="nm">Your project</div></div>`);
+  $('#grid').innerHTML=tiles.join('');
+}
+const SITE_CSS=`
+*,*::before,*::after{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+html{scrollbar-width:none}::-webkit-scrollbar{display:none}
+input,select{caret-color:#FF6200}
+#vcursor{position:fixed;left:0;top:0;width:34px;height:34px;z-index:10000;pointer-events:none;transform-origin:5px 4px;filter:drop-shadow(0 4px 6px rgba(0,0,0,.28))}
+#vripple{position:fixed;left:0;top:0;z-index:9999;border-radius:50%;border:3px solid #FF6200;background:rgba(255,98,0,.12);pointer-events:none;opacity:0}
+#vdrop{position:fixed;z-index:9998;background:#fff;border:1px solid #D7CFBE;border-radius:12px;box-shadow:0 26px 60px -20px rgba(32,26,19,.45);padding:6px;font-family:'Instrument Sans',sans-serif;font-size:14.5px;color:#201A13;opacity:0;pointer-events:none;transform-origin:50% 0}
+#vdrop div{height:38px;line-height:38px;padding:0 12px;border-radius:8px;white-space:nowrap}
+#vdrop div.on{background:rgba(255,98,0,.1);color:#D85300}`;
+async function setupSite(){
+  const frame=$('#site');
+  await new Promise(r=>{frame.onload=r;frame.src='/ecosystem/';});
+  const W=frame.contentWindow,D=frame.contentDocument;
+  for(let i=0;i<200&&!D.querySelector('.ec-row');i++)await new Promise(r=>setTimeout(r,50));
+  const style=D.createElement('style');style.textContent=SITE_CSS;D.head.appendChild(style);
+  D.body.insertAdjacentHTML('beforeend',`<svg id="vcursor" viewBox="0 0 24 24"><path d="M4 2.6v17.2l4.7-4.3 3.1 6.8 3.2-1.4-3.1-6.6h6.5z" fill="#14100c" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/></svg><div id="vripple"></div><div id="vdrop"></div>`);
+  await D.fonts.ready;await imagesLoaded(D);
+  const q=s=>D.querySelector(s),veil=q('#mSubmitEco'),modal=veil.querySelector('.modal');
+  const button=[...D.querySelectorAll('button')].find(b=>b.textContent.trim()==='Submit your project');
+  const submit=q('#subEcoFoot').lastElementChild;
+  const center=el=>{const r=el.getBoundingClientRect();return {x:r.left+r.width/2,y:r.top+r.height/2,r};};
+  // Measure the open form, then the confirmation, before restoring the page.
+  W.openSubmitEco();
+  const geo={hero:center(button),submit:center(submit)};
+  for(const f of T.fields)geo[f.id]=center(q('#'+f.id));
+  q('#subEcoForm').hidden=true;q('#subEcoOk').hidden=false;q('#subEcoOk').innerHTML=OK_HTML;
+  geo.ok=center(modal);
+  q('#subEcoForm').hidden=false;q('#subEcoOk').hidden=true;
+  W.closeModal('mSubmitEco');
+  S={W,D,q,veil,modal,button,submit,geo,cursor:q('#vcursor'),ripple:q('#vripple'),drop:q('#vdrop'),last:{}};
+}
+// Mirrors the confirmation markup in submitEco() in templates/site.html.
+const OK_HTML='<div class="sub-ok"><h5>Project queued for review</h5><p>Your project was received. The RWA Foundation team will review it before it appears in the directory. Your contact email stays private.</p></div>';
+
+/* ---------- walkthrough (inside the real page) ---------- */
+function clickTimes(){return [T.heroClick,...T.fields.flatMap(f=>f.drop?[f.click,f.drop[1]]:[f.click]),T.submitClick];}
+function optionPoint(field,value){
+  const sel=S.q('#'+field.id),opts=[...sel.options].slice(1).map(o=>o.text),r=S.geo[field.id].r;
+  const i=opts.indexOf(value);
+  return {x:r.left+Math.min(170,r.width/2),y:r.bottom+6+6+38*i+19};
+}
+function cursorAt(t){
+  const g=S.geo,f=Object.fromEntries(T.fields.map(x=>[x.id,x]));
+  // Text inputs are clicked toward the right so the cursor never hides typed text.
+  const at=(id,dx=0)=>({x:g[id].r.left+(S.q('#'+id).tagName==='SELECT'?Math.min(150,g[id].r.width*.35):g[id].r.width*.8)+dx,y:g[id].y+2});
+  return track(t,{x:1250,y:980},[
+    [9.55,10.5,{x:g.hero.x+18,y:g.hero.y+6}],
+    [10.95,11.4,at('seName')],
+    [12.27,12.47,at('seBlurb',20)],
+    [13.95,14.2,at('seType')],
+    [14.38,14.88,optionPoint(f.seType,f.seType.value)],
+    [15.02,15.3,at('seRegion')],
+    [15.48,15.78,optionPoint(f.seRegion,f.seRegion.value)],
+    [15.9,16.1,at('seUrl')],
+    [17.02,17.2,at('seEmail')],
+    [18.12,18.66,{x:g.submit.x+10,y:g.submit.y+6}],
+    [19.7,20.6,{x:g.submit.x+150,y:g.submit.y+70}],
+  ]);
+}
+function setValue(el,v){if(el.value!==v)el.value=v;}
+function renderSite(t){
+  const {q,veil,modal,button,submit,geo,cursor,ripple,drop,W}=S;
+  // Page hover/open state
+  const hover=t>=T.heroHover&&t<T.open[0];
+  button.style.background=hover?'#E95B00':'';button.style.transform=hover?'translateY(-1px)':'';
+  const open=t>=T.open[0];
+  if(open!==S.last.open){if(open)W.openSubmitEco();else W.closeModal('mSubmitEco');S.last.open=open;}
+  const po=E.out3(prog(t,...T.open));
+  veil.style.opacity=open?po:'';
+  modal.style.transform=open?`translateY(${16*(1-po)}px) scale(${.97+.03*po})`:'';
+  // Form values, focus and dropdowns
+  let active=null;
+  for(const f of T.fields){
+    const el=q('#'+f.id);
+    if(f.text)setValue(el,typed(f.text,f.type,t));
+    else setValue(el,t>=f.drop[1]?f.value:'');
+    if(t>=f.click)active=el;
+  }
+  if(t>=T.submitClick)active=null;
+  if(active&&S.D.activeElement!==active)active.focus({preventScroll:true});
+  if(!active&&S.D.activeElement&&S.D.activeElement!==S.D.body)S.D.activeElement.blur();
+  const df=T.fields.find(f=>f.drop&&t>=f.drop[0]&&t<f.drop[1]+.12);
+  if(df){
+    const sel=q('#'+df.id),r=geo[df.id].r,opts=[...sel.options].slice(1).map(o=>o.text);
+    if(S.last.drop!==df.id){drop.innerHTML=opts.map(o=>`<div>${o}</div>`).join('');S.last.drop=df.id;}
+    const pin=E.out3(prog(t,df.drop[0],df.drop[0]+.16)),pout=prog(t,df.drop[1],df.drop[1]+.12);
+    drop.style.left=r.left+'px';drop.style.top=(r.bottom+6)+'px';drop.style.width=r.width+'px';
+    drop.style.opacity=pin*(1-pout);drop.style.transform=`translateY(${(1-pin)*-8}px) scaleY(${.96+.04*pin})`;
+    const c=cursorAt(t),hit=Math.floor((c.y-(r.bottom+12))/38);
+    [...drop.children].forEach((d,i)=>d.classList.toggle('on',i===hit&&c.x>r.left&&c.x<r.right));
+  }else{drop.style.opacity=0;S.last.drop=null;}
+  // Submit, then the confirmation exactly as the site renders it
+  const sending=t>=T.submitClick+.05&&t<T.success,done=t>=T.success;
+  submit.disabled=sending;submit.textContent=sending?'Submitting…':'Submit';submit.hidden=done;
+  q('#subEcoForm').hidden=done;q('#subEcoOk').hidden=!done;
+  if(done&&!q('#subEcoOk').innerHTML)q('#subEcoOk').innerHTML=OK_HTML;
+  if(!done)q('#subEcoOk').innerHTML='';
+  const okBox=q('#subEcoOk .sub-ok');
+  if(okBox){const p=E.back(prog(t,T.success,T.success+.4));okBox.style.transform=`scale(${.9+.1*p})`;okBox.style.opacity=clamp(p*1.4);}
+  // Cursor and click ripple
+  const c=cursorAt(t),clicks=clickTimes();
+  const press=clicks.some(k=>t>=k-.06&&t<k+.1);
+  cursor.style.transform=`translate(${c.x-5.8}px,${c.y-4.2}px) scale(${press?.84:1})`;
+  cursor.style.opacity=t<9.5?0:1;
+  const k=clicks.filter(k=>t>=k&&t<k+.5).pop();
+  if(k!==undefined){
+    const p=prog(t,k,k+.5),size=14+64*E.out3(p);
+    ripple.style.width=ripple.style.height=size+'px';
+    ripple.style.transform=`translate(${c.x-size/2}px,${c.y-size/2}px)`;ripple.style.opacity=.75*(1-p);
+  }else ripple.style.opacity=0;
+}
+// Zoomed shots keep the page filling the frame, with the browser bar out of view.
+function cover({px,py,z}){return {z,px:clamp(px,960/z,1440-960/z),py:clamp(py,600/z,900-480/z)};}
+function cameraAt(t){
+  const g=S.geo,rest={px:720,py:430,z:.86};
+  return track(t,rest,[
+    [9.5,10.4,cover({px:430,py:300,z:1.45})],
+    [10.85,11.45,cover({px:720,py:g.seName.y+80,z:1.72})],
+    [13.9,14.35,cover({px:720,py:g.seType.y+70,z:1.72})],
+    [15.88,16.3,cover({px:720,py:(g.seUrl.y+g.seEmail.y)/2+20,z:1.72})],
+    [18.05,18.6,cover({px:720,py:g.submit.y-150,z:1.55})],
+    [19.45,19.95,cover({px:720,py:g.ok.y+10,z:1.9})],
+    [21.2,22.2,{px:720,py:g.ok.y,z:1.25}],
+  ]);
+}
+
+/* ---------- frame ---------- */
+function renderFrame(t){
+  // background glow drifts slowly
+  $('#glow').style.transform=`translate(${1200+Math.sin(t*.35)*260-550}px,${-260+Math.cos(t*.27)*140}px)`;
+
+  // Scene 1: title
+  const s1=inRange(t,T.s1);show($('#s1'),s1);
+  if(s1){
+    const pe=E.back(prog(t,.12,.6));
+    $('#s1ele').style.transform=`scale(${.4+.6*pe}) rotate(${(1-pe)*-12}deg)`;$('#s1ele').style.opacity=clamp(pe*2);
+    fadeUp($('#s1kick'),t,.32,.45,20);
+    const lines=$('#s1h').querySelectorAll('.mask>span');
+    reveal(lines[0],t,.48);reveal(lines[1],t,.62);
+    fadeUp($('#s1sub'),t,1.0,.5,24);
+    $('#s1 .wrap').style.transform=`scale(${1+t*.012})`;
+  }
+
+  // Wipes
+  const wipe=[T.wipe1,T.wipe2].find(w=>t>=w[0]&&t<w[3]);
+  show($('#wipe'),!!wipe,'flex');
+  if(wipe){
+    const pin=E.io3(prog(t,wipe[0],wipe[1])),pout=E.io3(prog(t,wipe[2],wipe[3]));
+    $('#wipe').style.transform=`translateY(${(1-pin)*100-pout*100}%)`;
+    const pe=E.back(prog(t,wipe[0]+.15,wipe[1]+.12));
+    $('#wipeele').style.transform=`scale(${.6+.4*pe})`;
+  }
+
+  // Scene 2: directory scale
+  const s2=inRange(t,T.s2);show($('#s2'),s2);
+  if(s2){
+    const pout=E.io3(prog(t,7.7,8.25));
+    $('#s2').style.opacity=1-pout;
+    $('#wall').style.transform=`translateY(-760px) rotate(-7deg) scale(${1.08+.08*prog(t,3.65,8.25)+.1*pout})`;
+    document.querySelectorAll('#wall .strip').forEach((s,i)=>{
+      const half=s.scrollWidth/2,speed=48+18*(i%3),off=(speed*(t+i*7.3))%half;
+      s.style.transform=`translateX(${i%2?-half+off:-off}px)`;
+    });
+    const total=S.total,pc=E.out3(prog(t,3.95,5.4));
+    $('#num').textContent=Math.round(total*pc).toLocaleString('en-US');
+    fadeUp($('#numlbl'),t,4.3,.5,24);
+    const cOut=E.in3(prog(t,5.8,6.15));
+    $('#count').style.opacity=1-cOut;$('#count').style.transform=`translateY(${-60*cOut}px)`;
+    const m=$('#missing').querySelectorAll('.mask>span');
+    show($('#missing'),t>=6);reveal(m[0],t,6.05,.5);reveal(m[1],t,6.2,.5);
+  }
+
+  // Scene 3: walkthrough
+  const s3=inRange(t,T.s3);$('#s3').style.visibility=s3?'visible':'hidden';
+  if(s3){
+    renderSite(t);
+    const cam=cameraAt(t),pe=E.out3(prog(t,...T.enter));
+    const z=cam.z*(.92+.08*pe),tx=960-z*cam.px,ty=600-z*(52+cam.py)+(1-pe)*1100;
+    $('#win').style.transform=`translate(${tx}px,${ty}px) scale(${z})`;
+    $('#urltext').textContent=typed('rwaf.xyz/ecosystem',T.url,t);
+    $('#urlcaret').style.opacity=(t>=T.url[0]&&t<T.load[1]&&Math.floor(t*2.5)%2===0)?1:0;
+    const pl=prog(t,...T.load);
+    $('#loadbar').style.width=(t<T.load[0]?0:E.out3(pl)*100)+'%';
+    $('#loadbar').style.opacity=1-prog(t,T.load[1],T.load[1]+.2);
+    $('#site').style.opacity=E.out3(prog(t,T.load[0]+.12,T.load[1]+.05));
+    document.querySelectorAll('#s3 .pill').forEach((el,i)=>{
+      const [a,b]=T.pills[i];
+      const pin=E.out3(prog(t,a,a+.35)),pout=E.in3(prog(t,b-.25,b));
+      el.style.display=t>=a&&t<b?'flex':'none';
+      el.style.opacity=pin*(1-pout);el.style.transform=`translateY(${(1-pin)*36-pout*24}px)`;
+    });
+  }
+
+  // Scene 4: recently added
+  const s4=inRange(t,T.s4);show($('#s4'),s4);
+  if(s4){
+    fadeUp($('#s4kick'),t,22.7,.45,20);
+    reveal($('#s4h .mask>span'),t,22.78,.5);
+    const tiles=document.querySelectorAll('#grid .gt');
+    tiles.forEach((el,i)=>{
+      const st=22.95+i*.055+(i===tiles.length-1?.25:0),p=E.back(prog(t,st,st+.42));
+      el.style.opacity=clamp(prog(t,st,st+.18));el.style.transform=`translateY(${(1-p)*40}px) scale(${.7+.3*p})`;
+    });
+    const you=document.querySelector('#grid .you .lg');
+    const pulse=t>=24.3&&t<25.1?1+.06*Math.sin((t-24.3)*Math.PI*2/.4)**2:1;
+    const fill=E.back(prog(t,25.1,25.45));
+    you.style.transform=`scale(${pulse+.04*fill})`;
+    $('#youfill').style.opacity=clamp(prog(t,25.1,25.25));$('#youfill').style.transform=`scale(${.6+.4*fill})`;
+    document.querySelector('#grid .you .nm').style.color=t>=25.1?'var(--text)':'';
+  }
+  // Orange tile expands into the end card
+  const ex=t>=26.9&&t<27.5;show($('#expand'),ex);
+  if(ex){
+    const r=S.youRect,p=E.io3(prog(t,26.9,27.45));
+    Object.assign($('#expand').style,{left:lerp(r.left,0,p)+'px',top:lerp(r.top,0,p)+'px',width:lerp(r.width,1920,p)+'px',height:lerp(r.height,1080,p)+'px',borderRadius:lerp(30,0,p)+'px'});
+  }
+
+  // Scene 5: call to action
+  const s5=t>=27.42;show($('#s5'),s5);
+  if(s5){
+    const pe=E.back(prog(t,27.45,27.9));
+    $('#s5ele').style.transform=`scale(${.5+.5*pe})`;$('#s5ele').style.opacity=clamp(pe*2);
+    reveal($('#s5h .mask>span'),t,27.62,.5);
+    const pc=E.back(prog(t,27.95,28.4));
+    $('#s5cta').style.transform=`scale(${.75+.25*pc})`;$('#s5cta').style.opacity=clamp(pc*2);
+    fadeUp($('#s5note'),t,28.25,.5,24);
+    const pw=E.back(prog(t,28.5,29.1));
+    $('#wally').style.transform=`translateY(${(1-pw)*420}px) rotate(${Math.sin(Math.max(0,t-29.1)*2.2)*2.2}deg)`;
+    const pulse=t>29?1+.025*Math.sin((t-29)*Math.PI*2/1.6):1;
+    $('#s5cta').style.transform+=` scale(${pulse})`;
+  }
+}
+
+/* ---------- sound cues (synthesized by sfx.py) ---------- */
+function sfxEvents(){
+  const ev=[];
+  ev.push({t:.14,k:'pop'},{t:.5,k:'thud'},{t:.64,k:'thud'});
+  for(const w of [T.wipe1,T.wipe2])ev.push({t:w[0]-.05,k:'whoosh'});
+  for(let i=0;i<24;i++)ev.push({t:3.95+1.45*(1-Math.pow(1-i/24,1/3)),k:'tick',p:i/24});
+  ev.push({t:6.05,k:'thud'},{t:6.2,k:'thud'});
+  ev.push({t:7.72,k:'whoosh'});
+  for(const c of charTimes('rwaf.xyz/ecosystem',T.url))ev.push({t:c,k:'key'});
+  for(const c of clickTimes())ev.push({t:c,k:'click'});
+  for(const f of T.fields)if(f.text)for(const c of charTimes(f.text,f.type))ev.push({t:c,k:'key'});
+  ev.push({t:T.success,k:'chime'});
+  for(let i=0;i<ADDED.length;i++)ev.push({t:22.95+i*.055,k:'pop',p:.4});
+  ev.push({t:23.85,k:'pop'},{t:25.1,k:'chime'},{t:26.88,k:'whoosh'},{t:27.45,k:'final'});
+  return ev.sort((a,b)=>a.t-b.t);
+}
+
+window.stageReady=(async()=>{
+  const data=await (await fetch('/data/ecosystem-directory.json')).json();
+  const byId=Object.fromEntries(data.profiles.map(p=>[p.id,p]));
+  await setupWall(data.profiles);setupGrid(byId);
+  await setupSite();
+  S.total=data.profiles.length;
+  await document.fonts.ready;
+  await Promise.all(['820 120px Archivo','500 26px "Geist Mono"','600 36px "Instrument Sans"','400 36px "Instrument Sans"'].map(f=>document.fonts.load(f)));
+  await imagesLoaded(document);
+  show($('#s4'),true);
+  const r=document.querySelector('#grid .you .lg').getBoundingClientRect();
+  S.youRect={left:r.left,top:r.top,width:r.width,height:r.height};
+  renderFrame(0);
+  return {fps:FPS,duration:DURATION,sfx:sfxEvents()};
+})();
+</script>
+</body>
+</html>
