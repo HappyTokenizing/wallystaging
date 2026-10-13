@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {createHash} from 'node:crypto';
-import {pages,origin,aliases,homeVariants} from './site-pages.mjs';
+import {pages,origin,aliases} from './site-pages.mjs';
 const root=fileURLToPath(new URL('../',import.meta.url));
 const read=p=>fs.readFileSync(path.join(root,p),'utf8');
 const write=(p,text)=>{fs.mkdirSync(path.dirname(path.join(root,p)),{recursive:true});fs.writeFileSync(path.join(root,p),typeof text==='string'&&p.endsWith('.html')?text.replace(/[ \t]+$/gm,'').replace(/\n{3,}/g,'\n\n'):text);};
@@ -52,22 +52,12 @@ let css=0,js=0;
 template=template.replace(/<style>([\s\S]*?)<\/style>/g,(_,content)=>{const f=`assets/site-layout-${++css}.css`;write(f,content.trim()+'\n');return `<link rel="stylesheet" href="/${f}">`;});
 template=template.replace(/<script>([\s\S]*?)<\/script>/g,(_,content)=>{const f=`assets/site-runtime-${++js}.js`;write(f,content.trim()+'\n');return `<script src="/${f}"></script>`;});
 for(const page of pages.filter(p=>mains.has(p.id))){
- let html=template.replace(/<main id="page-([\w-]+)"[^>]*>[\s\S]*?<\/main>/g,(text,id)=>id===page.id?text.replace(' hidden',''):'');
+ let html=template.replace(/<main id="page-([\w-]+)"[^>]*>[\s\S]*?<\/main>/g,(text,id)=>id===page.id?text.replace(/^<main\b[^>]*>/,tag=>tag.replace(/\shidden\b/,'')):'');
  html=html.replace('<body>',`<body data-page="${page.id}">`);
  html=metadata(html,page);
  // Set display modes before first paint (the JS boot uses the same flags).
  if(page.id==='eco'||page.id==='meet')html=html.replace('id="landing"',`id="landing" class="${page.id==='eco'?'eco':'meet'}-mode"`);
  write(page.path==='/'?'index.html':page.path.slice(1)+'index.html',html);
-}
-// Homepage comparison pages (/1/, /2/, /3/): the homepage with one option's <main> and the option switcher.
-const switcher=current=>`<nav class="hv-bar" aria-label="Compare homepage options"><span class="hv-label">Compare homepages</span>${homeVariants.map(v=>`<a href="${v.path}"${v.id===current?' aria-current="page"':''}><b>${v.id}</b> ${escape(v.label)}</a>`).join('')}</nav>`;
-for(const variant of homeVariants){
- const file=`templates/home-variants/${variant.id}.html`,main=externalize(read(file)).replace(/^\s*<!--[\s\S]*?-->\s*/,'').trim();
- if(!/^<main id="page-home"[^>]*>/.test(main)||(main.match(/<main\b/g)||[]).length!==1)throw Error(`${file} must contain exactly one <main id="page-home">`);
- let html=template.replace(/<main id="page-([\w-]+)"[^>]*>[\s\S]*?<\/main>/g,(text,id)=>id==='home'?main:'');
- html=html.replace('<body>',`<body data-page="home" data-variant="${variant.id}" data-title="${escape(variant.title)}">`);
- html=metadata(html,variant).replace('</head>','<link rel="stylesheet" href="/assets/home-compare.css">\n</head>').replace('</body>',switcher(variant.id)+'\n</body>');
- write(variant.path.slice(1)+'index.html',html);
 }
 // Research and the generated textbook retain their engines; this layer supplies site-wide navigation and metadata.
 for(const page of pages.filter(p=>['research','perpsReport','marketReport','guide'].includes(p.id))){
@@ -86,7 +76,7 @@ write('sitemap.xml','<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http
 write('robots.txt','User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /templates/\nDisallow: /scripts/\nDisallow: /tests/\nDisallow: /vendor/\nDisallow: /data/research/\n\nSitemap: '+origin+'/sitemap.xml\n');
 const config=JSON.parse(read('vercel.json'));
 config.buildCommand='npm run build';config.outputDirectory='.';delete config.trailingSlash;
-config.redirects=pages.filter(p=>p.path!=='/').concat(homeVariants).map(p=>({source:p.path.slice(0,-1),destination:p.path,permanent:true})).concat(Object.entries(aliases).flatMap(([source,destination])=>[source.slice(0,-1),source].map(source=>({source,destination,permanent:true}))));
+config.redirects=pages.filter(p=>p.path!=='/').map(p=>({source:p.path.slice(0,-1),destination:p.path,permanent:true})).concat(Object.entries(aliases).flatMap(([source,destination])=>[source.slice(0,-1),source].map(source=>({source,destination,permanent:true}))));
 config.headers=[{source:'/assets/brand/(.*)',headers:[{key:'X-Content-Type-Options',value:'nosniff'}]},{source:'/assets/brand/rwa-foundation-logos.zip',headers:[{key:'Content-Disposition',value:'attachment; filename="RWA-Foundation-Logos.zip"'}]},{source:'/assets/brand/rwa-foundation-brand-guidelines.pdf',headers:[{key:'Content-Disposition',value:'attachment; filename="RWA-Foundation-Brand-Guidelines.pdf"'}]}];
 write('vercel.json',JSON.stringify(config,null,2)+'\n');
-console.log(`Built ${pages.length} pages and ${homeVariants.length} homepage options with shared assets, canonical metadata, sitemap and robots.txt.`);
+console.log(`Built ${pages.length} pages with shared assets, canonical metadata, sitemap and robots.txt.`);
