@@ -99,6 +99,21 @@
       "permanent": true
     },
     {
+      "source": "/1",
+      "destination": "/1/",
+      "permanent": true
+    },
+    {
+      "source": "/2",
+      "destination": "/2/",
+      "permanent": true
+    },
+    {
+      "source": "/3",
+      "destination": "/3/",
+      "permanent": true
+    },
+    {
       "source": "/foundation",
       "destination": "/members/",
       "permanent": true
