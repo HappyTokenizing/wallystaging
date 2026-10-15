@@ -2,8 +2,8 @@
 
 Usage: python3 sfx.py cues.json out.wav
 Every sound is generated here (no samples), so the track has no licensing
-dependencies. Cues: pop, thud, whoosh, tick, key, click, chime, final; an optional p
-scales pop, thud and whoosh, or sets a tick's pitch.
+dependencies. Cues: pop, thud, whoosh, tick, key, click, chime, ding, buzz,
+final; an optional p scales pop, thud and whoosh, or sets a tick's pitch.
 """
 import json
 import sys
@@ -93,6 +93,23 @@ def chime():
     return out
 
 
+def ding():
+    """Notification arrival: two quick bright notes."""
+    out = np.zeros(int(0.6 * SR))
+    for start, f in ((0.0, 1567.98), (0.07, 2093.0)):
+        b = bell(f, 0.5, 0.16) * 0.15
+        i = int(start * SR)
+        out[i:i + b.size] += b[: out.size - i]
+    return out
+
+
+def buzz():
+    """Haptic tap: a short, low, pulsing hum."""
+    t = seconds(0.18)
+    pulse = 0.5 + 0.5 * np.sign(np.sin(2 * np.pi * 28 * t))
+    return np.sin(2 * np.pi * 165 * t) * pulse * np.sin(np.pi * t / t[-1]) * 0.22
+
+
 def final():
     out = np.zeros(int(2.0 * SR))
     for k, f in enumerate((523.25, 659.25, 783.99, 1046.5)):
@@ -104,7 +121,7 @@ def final():
     return out
 
 
-SOUNDS = {'click': click, 'key': key, 'tick': tick, 'pop': pop, 'thud': thud, 'whoosh': whoosh, 'chime': chime, 'final': final}
+SOUNDS = {'click': click, 'key': key, 'tick': tick, 'pop': pop, 'thud': thud, 'whoosh': whoosh, 'chime': chime, 'ding': ding, 'buzz': buzz, 'final': final}
 PAN = {'whoosh': None, 'key': 0.15, 'click': 0.1}
 
 

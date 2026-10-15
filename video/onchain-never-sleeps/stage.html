@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Onchain Never Sleeps Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=Instrument+Sans:wght@400..700&family=Lora:ital,wght@0,500;1,500&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/video/kit.css">
+<style>
+/* Square, like the post's picture. */
+#stage{width:1080px;height:1080px}
+.title .wrap{top:214px}
+.title .ele{width:170px}
+.title h1{font-size:118px}
+.title .sub{font-size:40px}
+.endcard .wrap{top:118px}
+.endcard .ele{width:180px}
+.endcard h2{font-size:80px;margin-top:40px}
+.endcard .cta{font-size:54px;margin-top:44px;padding:20px 24px 20px 40px}
+.endcard .cta .arr{width:66px;height:66px}
+.endcard .note{font-size:32px;margin-top:38px}
+.endcard .wally{width:230px;right:22px;bottom:-56px}
+
+/* Lunch-hour sky, sampled from the picture */
+#sky{position:absolute;inset:0;background:linear-gradient(180deg,#FAE6C3 0%,#F9D8AB 18%,#F5CA97 37%,#F4B57F 55%,#F1A166 73%,#E88953 91%,#E2804B 100%)}
+#sun{position:absolute;left:890px;top:40px;width:130px;height:130px;border-radius:50%;background:radial-gradient(circle,#FEF9E3 0%,#FCEDB4 45%,#FADF90 72%,rgba(250,223,144,0) 100%);box-shadow:0 0 70px 26px rgba(253,226,150,.45)}
+
+/* Phone, laid out in the picture's own pixels (488 × 895); screen children sit 8px in. */
+#phone{position:absolute;left:0;top:0;width:488px;height:895px;border-radius:70px;background:#080108;transform-origin:0 0;box-shadow:0 46px 90px -34px rgba(90,36,6,.55)}
+#phone .screen{position:absolute;inset:8px;border-radius:62px;overflow:hidden;background:linear-gradient(180deg,#2B1E16 0%,#201712 50%,#160E0C 100%);color:#fff}
+#phone .island{position:absolute;left:178px;top:22px;width:132px;height:36px;border-radius:18px;background:#0B0706}
+#phone .date{position:absolute;left:0;right:0;top:63px;text-align:center;font-size:19px;font-weight:600;color:#DBD6DA}
+#phone .clock{position:absolute;left:0;right:0;top:81px;text-align:center;font-size:100px;font-weight:500;letter-spacing:-3px;line-height:110px;font-variant-numeric:tabular-nums}
+#phone .chip{position:absolute;left:50%;top:190px;height:32px;padding:0 15px 0 12px;border-radius:16px;background:#433A35;display:flex;align-items:center;gap:6px;font-size:17px;font-weight:600;transform-origin:50% 50%}
+#phone .chip span{font-size:16px}
+.note-card{position:absolute;left:20px;top:236px;width:432px;height:72px;border-radius:18px;background:#342D27}
+.note-card img{position:absolute;left:14px;top:10px;width:52px;height:52px;border-radius:12px;object-fit:contain;background:#fff;padding:7px}
+.note-card img.dark{background:#1A1A1A}
+.note-card img.full{padding:0;background:none}
+.note-card .ttl{position:absolute;left:79px;top:15px;font-size:16px;font-weight:700}
+.note-card .msg{position:absolute;left:79px;top:38px;font-size:16px;color:#F5F3E7;white-space:nowrap}
+.note-card .ago{position:absolute;right:15px;top:16px;font-size:13px;color:#A09792}
+#phone .more{position:absolute;left:0;right:0;top:740px;text-align:center;font-size:14px;color:#A7A49D}
+#phone .tag{position:absolute;left:0;right:0;text-align:center;font-family:'Lora',serif;font-weight:500;font-size:28px;line-height:36px}
+#phone .tag.a{top:778px;color:#fff}
+#phone .tag.b{top:814px;font-style:italic;color:#EDA772}
+
+.brand{position:absolute;left:0;right:0;top:1014px;display:flex;align-items:center;justify-content:center;gap:12px;color:#FFFEF3}
+.brand img{width:66px;height:auto}
+.brand b{display:block;font-family:var(--display);font-weight:800;font-size:19px;letter-spacing:.02em}
+.brand span{display:block;font-family:var(--mono);font-size:12px;margin-top:3px}
+
+/* Rail captions */
+.cap{position:absolute;left:540px;top:950px;display:flex;align-items:center;gap:16px;padding:12px 30px 12px 12px;border-radius:999px;background:var(--text);color:#fff;font-size:34px;font-weight:600;letter-spacing:-.01em;white-space:nowrap;box-shadow:0 22px 50px -18px rgba(20,14,8,.6)}
+.cap .tm{font-family:var(--mono);font-weight:600;font-size:27px;background:var(--orange);border-radius:999px;padding:8px 16px}
+
+#s3{z-index:40}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><div id="glow"></div></div>
+
+  <section id="s1" class="title">
+    <div class="wrap">
+      <img class="ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <div class="kicker">rwaf.xyz · Onchain finance</div>
+      <h1 class="display"><span class="mask"><span>When rails</span></span><span class="mask"><span class="o">run 24/7,</span></span></h1>
+      <p class="sub">it's hard to take a break.</p>
+    </div>
+  </section>
+
+  <section id="lock">
+    <div id="sky"></div><div id="sun"></div>
+    <div id="phone">
+      <div class="screen">
+        <div class="date">Thursday 15 October</div>
+        <div class="clock" id="clock">12:00</div>
+        <div class="chip" id="chip"><span>🥪</span>Lunch</div>
+        <div id="stack"></div>
+        <div class="more" id="more"></div>
+        <div class="tag a" id="tagA">Finally, lunch break.</div>
+        <div class="tag b" id="tagB">Markets didn't take one.</div>
+      </div>
+      <div class="island"></div>
+    </div>
+    <div class="brand" id="brand"><img src="/assets/brand/rwaf-logo.png" alt=""><div><b>RWA FOUNDATION</b><span>@RWAFoundation_</span></div></div>
+    <div id="caps"></div>
+  </section>
+
+  <section id="s3" class="endcard">
+    <div class="wrap">
+      <img class="ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <h2 class="display"><span class="mask"><span>Onchain finance<br>never sleeps.</span></span></h2>
+      <div class="cta">rwaf.xyz<span class="arr"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      <p class="note">Follow @RWAFoundation_</p>
+    </div>
+    <img class="wally" src="/assets/brand/wally-3d.png" alt="">
+  </section>
+
+  <div id="wipe"><img src="/assets/brand/rwa-elephant-white.png" alt=""></div>
+</div>
+
+<script src="/video/kit.js"></script>
+<script>
+/* "Onchain finance never sleeps": the lock screen from the 15 October post,
+   filling up with notifications while the clock runs from 12:00 to 12:30. */
+const FPS=30, WIDTH=1080, HEIGHT=1080;
+
+// Oldest first. `at` is the clock minute after 12:00; copy is from the picture.
+const NOTES=[
+  {app:'Aave',msg:'Health factor 2.08. Your loan is safe.',at:6,icon:'/ecosystem/aave-official-followup-20261007.png',rail:'DeFi lending'},
+  {app:'PAXG',msg:'Gold is up 1.2% since you bought',at:11,icon:'/ecosystem/paxos.png',rail:'Tokenized gold',full:true},
+  {app:'USDC',msg:'Sam sent you 250.00 USDC for tickets',at:19,icon:'/ecosystem/circle-logo-v2.svg',rail:'Stablecoin transfers'},
+  {app:'Securitize',msg:'Distribution received: 86.14 USDC',at:24,icon:'/ecosystem/securitize-official-followup-20261007.svg',rail:'Tokenized fund payouts'},
+  {app:'Kraken',msg:'Order filled: 3 shares of NVDA',at:28,icon:'/ecosystem/kraken-community-20261007.ico',rail:'Tokenized stocks',full:true},
+  {app:'USDT',msg:'You paid 9.80 USDT to Corner Deli',at:30,icon:'/ecosystem/tether-official-20261007.svg',rail:'Stablecoin payments',dark:true},
+];
+const MORE=12, PITCH=83.5;
+
+const T={
+  s1:[0,3.65], wipe1:[3.25,3.65,3.75,4.15], lock:[3.65,22.2],
+  push:[4.55,5.55], lunch:5.0,
+  arrive:[6.2,8.2,10.2,12.2,14.0,15.8],
+  pull:[17.1,18.3], more:[18.05,18.95], tagA:18.95, tagB:19.5, brand:19.9,
+  end:22.2, duration:27,
+};
+const DURATION=T.duration;
+// The clock reaches each notification's minute as it arrives.
+const CLOCK=[[T.lunch,0],...NOTES.map((n,i)=>[T.arrive[i],n.at])];
+function minuteAt(t){
+  if(t<=CLOCK[0][0])return 0;
+  for(let i=1;i<CLOCK.length;i++){
+    const [a,ma]=CLOCK[i-1],[b,mb]=CLOCK[i];
+    if(t<b)return Math.floor(lerp(ma,mb,prog(t,a,b)));
+  }
+  return CLOCK[CLOCK.length-1][1];
+}
+const pad=n=>String(n).padStart(2,'0');
+
+/* ---------- setup ---------- */
+function setup(){
+  $('#stack').innerHTML=NOTES.map(n=>`<div class="note-card"><img class="${n.dark?'dark':n.full?'full':''}" src="${n.icon}" alt=""><div class="ttl">${n.app}</div><div class="msg">${n.msg}</div><div class="ago"></div></div>`).join('');
+  const caps=[['12:00','Lunch break'],...NOTES.map(n=>['12:'+pad(n.at),n.rail])];
+  $('#caps').innerHTML=caps.map(([tm,txt])=>`<div class="cap"><span class="tm">${tm}</span>${txt}</div>`).join('');
+}
+
+/* ---------- lock screen ---------- */
+// Puts phone point (fx,fy) at stage (540,sy), scaled by z.
+const REST={fx:244,fy:447.5,sy:485,z:.985}, CLOSE={fx:244,fy:300,sy:540,z:1.85};
+function cameraAt(t){return track(t,REST,[[...T.push,CLOSE],[...T.pull,REST]]);}
+function renderLock(t){
+  const cam=cameraAt(t);
+  // Each arrival gives the phone a short haptic shake.
+  const k=T.arrive.filter(a=>t>=a&&t<a+.3).pop();
+  const shake=k===undefined?0:Math.sin((t-k)*95)*5*(1-prog(t,k,k+.3));
+  $('#phone').style.transform=`translate(${540-cam.z*cam.fx+shake}px,${cam.sy-cam.z*cam.fy}px) scale(${cam.z})`;
+
+  const m=minuteAt(t);
+  $('#clock').textContent='12:'+pad(m);
+  const pc=E.back(prog(t,T.lunch,T.lunch+.45));
+  $('#chip').style.opacity=clamp(prog(t,T.lunch,T.lunch+.15));
+  $('#chip').style.transform=`translateX(-50%) scale(${.6+.4*pc})`;
+
+  // Newest on top; older cards slide down one slot per later arrival.
+  document.querySelectorAll('.note-card').forEach((el,j)=>{
+    const a=T.arrive[j];
+    el.style.display=t>=a?'block':'none';
+    if(t<a)return;
+    let slot=0;for(let i=j+1;i<NOTES.length;i++)slot+=E.io3(prog(t,T.arrive[i],T.arrive[i]+.4));
+    const p=E.back(prog(t,a,a+.45));
+    el.style.opacity=clamp(prog(t,a,a+.16));
+    el.style.transform=`translateY(${slot*PITCH-(1-p)*34}px) scale(${.93+.07*p})`;
+    const ago=m-NOTES[j].at;
+    el.querySelector('.ago').textContent=ago<=0?'now':`${ago}m ago`;
+  });
+
+  // The hidden extras surface as one counter once the camera pulls back.
+  const n=Math.floor(MORE*prog(t,...T.more));
+  $('#more').textContent=`+${n} more since 12:00`;
+  $('#more').style.opacity=clamp(prog(t,T.more[0],T.more[0]+.2));
+  fadeUp($('#tagA'),t,T.tagA,.55,14);
+  fadeUp($('#tagB'),t,T.tagB,.55,14);
+  fadeUp($('#brand'),t,T.brand,.5,12);
+
+  const ranges=[[T.lunch,T.arrive[0]],...T.arrive.map((a,i)=>[a,T.arrive[i+1]??T.pull[0]])];
+  document.querySelectorAll('.cap').forEach((el,i)=>{
+    const [a,b]=ranges[i],pin=E.out3(prog(t,a,a+.35)),pout=E.in3(prog(t,b-.25,b));
+    el.style.display=t>=a&&t<b?'flex':'none';
+    el.style.opacity=pin*(1-pout);el.style.transform=`translateX(-50%) translateY(${(1-pin)*30-pout*20}px)`;
+  });
+}
+
+/* ---------- frame ---------- */
+function renderFrame(t){
+  renderGlow(t);
+  const s1=inRange(t,T.s1);show($('#s1'),s1);
+  if(s1)renderTitle($('#s1'),t);
+  renderWipe(t,[T.wipe1]);
+  const lock=inRange(t,T.lock);show($('#lock'),lock);
+  if(lock)renderLock(t);
+  // End card rises over the finished lock screen.
+  const s3=t>=T.end-.45;show($('#s3'),s3);
+  if(s3){
+    $('#s3').style.transform=`translateY(${(1-E.io3(prog(t,T.end-.45,T.end)))*100}%)`;
+    renderEndcard($('#s3'),t,T.end);
+  }
+}
+
+/* ---------- sound cues (synthesized by sfx.py) ---------- */
+function sfxEvents(){
+  const ev=[{t:.14,k:'pop'},{t:.5,k:'thud'},{t:.64,k:'thud'},{t:T.wipe1[0]-.05,k:'whoosh'}];
+  ev.push({t:T.push[0],k:'whoosh',p:.35},{t:T.lunch,k:'chime'});
+  // A soft tick for every minute the clock advances.
+  let last=0;
+  for(let t=T.lunch;t<=T.arrive[T.arrive.length-1]+.01;t+=1/FPS){const m=minuteAt(t);if(m!==last){ev.push({t,k:'tick',p:.15});last=m;}}
+  for(const a of T.arrive)ev.push({t:a,k:'ding'},{t:a,k:'buzz'});
+  ev.push({t:T.pull[0],k:'whoosh',p:.35});
+  for(let i=1;i<=MORE;i++)ev.push({t:T.more[0]+(T.more[1]-T.more[0])*i/MORE,k:'tick',p:.3+.6*i/MORE});
+  ev.push({t:T.tagA,k:'thud',p:.5},{t:T.end-.47,k:'whoosh'},{t:T.end,k:'final'});
+  return ev.sort((a,b)=>a.t-b.t);
+}
+
+window.stageReady=(async()=>{
+  setup();
+  await loadFonts();
+  await document.fonts.load('500 28px Lora');await document.fonts.load('italic 500 28px Lora');
+  await imagesLoaded(document);
+  renderFrame(0);
+  return {fps:FPS,duration:DURATION,width:WIDTH,height:HEIGHT,sfx:sfxEvents()};
+})();
+</script>
+</body>
+</html>

@@ -54,6 +54,7 @@ const page=await browser.newPage({viewport:{width:1920,height:1080},deviceScaleF
 page.on('pageerror',e=>console.error('page error:',e.message));
 await page.goto(`http://127.0.0.1:${server.address().port}/video/${name}/stage.html`,{waitUntil:'networkidle'});
 const meta=await page.evaluate(()=>window.stageReady);
+await page.setViewportSize({width:meta.width||1920,height:meta.height||1080});
 // renderFrame may return a promise (e.g. waiting for images a view switch added).
 const shoot=async t=>{await page.evaluate(t=>renderFrame(t),t);return page.screenshot({type:'png'});};
 

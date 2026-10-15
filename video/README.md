@@ -1,11 +1,12 @@
 # RWAF videos
 
-Promo videos for X, rendered from HTML. Each video is 1920 × 1080 at 30 fps, encoded as H.264 with AAC sound effects. `.vercelignore` keeps `video/` out of site deployments.
+Promo videos for X, rendered from HTML at 30 fps and encoded as H.264 with AAC sound effects. `.vercelignore` keeps `video/` out of site deployments.
 
-| Folder | Video | Length |
-| --- | --- | --- |
-| `ecosystem-submissions/` | How to submit a project to the ecosystem directory | 31.5 s |
-| `ecosystem-categories/` | The directory's sectors and their categories | 53.5 s |
+| Folder | Video | Size | Length |
+| --- | --- | --- | --- |
+| `ecosystem-submissions/` | How to submit a project to the ecosystem directory | 1920 × 1080 | 31.5 s |
+| `ecosystem-categories/` | The directory's sectors and their categories | 1920 × 1080 | 53.5 s |
+| `onchain-never-sleeps/` | The "Onchain finance never sleeps" lunch-break lock screen | 1080 × 1080 | 27 s |
 
 Each folder holds a `stage.html` composition and its rendered MP4. Shared parts live alongside them:
 
@@ -23,7 +24,7 @@ node video/render.mjs ecosystem-categories --stills 5,14.7,25.8    # review stil
 node video/render.mjs ecosystem-submissions --from 7.7 --to 22.6   # one section
 ```
 
-`render.mjs` serves the repository locally. It answers `/api/ecosystem` with no pending updates, so the directory renders its committed snapshot. Every frame is a pure function of time, so a re-render after a data change picks up the new counts and logos. Scene timing lives in the `T` object at the top of each `stage.html`.
+`render.mjs` serves the repository locally. It answers `/api/ecosystem` with no pending updates, so the directory renders its committed snapshot. Every frame is a pure function of time, so a re-render after a data change picks up the new counts and logos. Scene timing lives in the `T` object at the top of each `stage.html`. A stage can set its own `width` and `height`; the default is 1920 × 1080.
 
 ## Ecosystem Submissions
 
@@ -75,3 +76,18 @@ Counts as of the October 15, 2026 render:
 | Brokerage & exchanges | 5 | Digital asset exchanges 4; Brokerage 1 |
 
 Spotlights show at most four category bars and note how many more there are. Logos come from each sector's directory listing, in the directory's own order.
+
+## Onchain Never Sleeps
+
+This video animates the RWA Foundation's 15 October 2026 post: "When rails run 24/7, it's hard to take a break. Onchain finance never sleeps." It is square, like the post's picture.
+
+| Time | Scene |
+| --- | --- |
+| 0–3.6 s | Title: "When rails run 24/7, it's hard to take a break." |
+| 3.7–17 s | The lock screen at 12:00. The Lunch focus turns on, then six notifications arrive as the clock runs to 12:30. Captions name each rail: DeFi lending, tokenized gold, stablecoin transfers, tokenized fund payouts, tokenized stocks and stablecoin payments. |
+| 17–22.2 s | The camera pulls back to the full picture. "+12 more since 12:00" counts up, then "Finally, lunch break. Markets didn't take one." appears. |
+| 22.2–27 s | End card: "Onchain finance never sleeps.", `rwaf.xyz`, "Follow @RWAFoundation_" |
+
+- The lock screen is rebuilt in HTML from the post's picture: its layout, notification copy, timestamps and sampled colours. Each "Xm ago" label follows the clock, so the final frame matches the picture.
+- The punchline uses Lora, the closest Google Font to the picture's serif.
+- The app icons are the bundled directory logos, used unmodified on plain tiles. The Securitize and Aave marks are their dark-on-light versions, where the picture used light-on-colour app icons. Kraken has only its official 48 px favicon (`ecosystem/kraken-community-20261007.ico`), so it is slightly soft when the camera zooms in. A larger official asset could not be fetched because `kraken.com` and `x.com` are outside this environment's network policy.
