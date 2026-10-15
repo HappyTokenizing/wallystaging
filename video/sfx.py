@@ -2,7 +2,8 @@
 
 Usage: python3 sfx.py cues.json out.wav
 Every sound is generated here (no samples), so the track has no licensing
-dependencies. Cues: pop, thud, whoosh, tick, key, click, chime, final.
+dependencies. Cues: pop, thud, whoosh, tick, key, click, chime, final; an optional p
+scales pop, thud and whoosh, or sets a tick's pitch.
 """
 import json
 import sys
@@ -50,12 +51,12 @@ def pop(p=1.0):
     return sweep(1150, 380, d, 6) * np.exp(-t / 0.045) * 0.34 * p
 
 
-def thud():
+def thud(p=1.0):
     d = 0.35
     t = seconds(d)
     body = sweep(150, 52, d, 5) * np.exp(-t / 0.13)
     hit = rng.standard_normal(t.size) * np.exp(-t / 0.004) * 0.25
-    return (body + hit) * 0.5
+    return (body + hit) * 0.5 * p
 
 
 def lowpass(x, cutoff):
@@ -68,12 +69,12 @@ def lowpass(x, cutoff):
     return y
 
 
-def whoosh():
+def whoosh(p=1.0):
     d = 0.6
     t = seconds(d)
     shape = np.sin(np.pi * np.clip(t / d, 0, 1) ** 0.7) ** 2
     cutoff = 350 + 4200 * shape
-    return lowpass(rng.standard_normal(t.size), cutoff) * shape * 0.55
+    return lowpass(rng.standard_normal(t.size), cutoff) * shape * 0.55 * p
 
 
 def bell(freq, d, decay):
@@ -112,7 +113,7 @@ def main(cues_path, out_path):
     mix = np.zeros((int((cues['duration'] + 2.5) * SR), 2))
     for ev in cues['events']:
         fn = SOUNDS[ev['k']]
-        sound = fn(ev['p']) if 'p' in ev and ev['k'] in ('tick', 'pop') else fn()
+        sound = fn(ev['p']) if 'p' in ev and ev['k'] in ('tick', 'pop', 'thud', 'whoosh') else fn()
         i = int(ev['t'] * SR)
         n = min(sound.size, mix.shape[0] - i)
         if n <= 0:

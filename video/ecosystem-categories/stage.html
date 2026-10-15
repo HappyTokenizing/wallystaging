@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Ecosystem Sectors Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=Instrument+Sans:wght@400..700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/video/kit.css">
+<style>
+.slide{position:absolute;inset:0;display:none}
+/* Bars use Readable Orange: 3.6:1 against the background, where Signal Orange is 2.7:1. */
+.bar{position:absolute;left:0;top:0;height:100%;background:var(--orange2);border-radius:0 7px 7px 0}
+.val{position:absolute;top:50%;transform:translateY(-50%);font-weight:600;color:var(--text);white-space:nowrap}
+
+/* ranked sectors */
+#chart .head{position:absolute;left:120px;top:96px}
+#chart h2{font-size:96px;margin-top:24px}
+#bars{position:absolute;left:120px;top:330px;width:1680px}
+.brow{display:flex;align-items:center;height:104px}
+.brow .lbl{width:580px;flex:none;font-size:38px;font-weight:600}
+.brow .track{position:relative;flex:none;width:960px;height:44px}
+.brow .val{font-size:42px}
+#chart .foot{position:absolute;left:120px;top:990px;font-size:26px;color:var(--text3)}
+
+/* sector spotlight */
+.spot .kicker b{color:var(--orange2);font-weight:600}
+.spot .kicker{position:absolute;left:120px;top:96px}
+.spot h2{position:absolute;left:120px;top:150px;font-size:128px;white-space:nowrap}
+.spot .count{position:absolute;left:120px;top:396px}
+.spot .count .num{font-size:236px;line-height:.86}
+.spot .count .lbl{font-size:40px;color:var(--text2);margin-top:26px}
+.spot .cats{position:absolute;left:840px;top:392px;width:960px}
+.cat{height:90px}
+.cat .lbl{font-size:31px;font-weight:600;line-height:38px;white-space:nowrap}
+.cat .track{position:relative;height:34px;margin-top:6px;width:820px}
+.cat .val{font-size:31px}
+.cats .more{font-size:28px;color:var(--text3);margin-top:4px}
+.spot .strip{position:absolute;left:120px;top:818px;display:flex;gap:22px}
+.spot .strip .lt{width:120px;height:120px;padding:24px}
+.spot .strip .lt.wm{padding:10px}
+.spot .grid{position:absolute;left:840px;top:384px;width:960px;display:grid;grid-template-columns:repeat(5,1fr);gap:24px 16px}
+.spot .grid .g{display:flex;flex-direction:column;align-items:center;gap:12px}
+.spot .grid .lt{width:132px;height:132px;padding:26px;border-radius:28px}
+.spot .grid .nm{font-size:22px;font-weight:600;white-space:nowrap}
+.lt{width:112px;height:112px;flex:none;border-radius:24px;background:#fff;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;padding:22px;box-shadow:0 16px 34px -22px rgba(32,26,19,.4)}
+.lt.wm{padding:10px}
+.lt.dark{background:#171b24;border-color:#292f3a}
+.lt img{max-width:100%;max-height:100%;object-fit:contain;display:block}
+
+/* smaller sectors */
+#tail .head{position:absolute;left:0;right:0;top:78px;display:flex;flex-direction:column;align-items:center;text-align:center}
+#tail h2{font-size:84px;margin-top:22px}
+#cards{position:absolute;left:120px;top:292px;width:1680px;display:flex;flex-wrap:wrap;justify-content:center;gap:24px}
+.tc{position:relative;width:402px;height:220px;border-radius:26px;background:#fff;border:1px solid var(--line);padding:24px 26px;box-shadow:0 18px 40px -26px rgba(32,26,19,.35)}
+.tc .nm{font-size:29px;font-weight:600;white-space:nowrap}
+.tc .num{font-size:84px;margin-top:30px;line-height:.9}
+.tc .unit{font-size:22px;color:var(--text2);margin-top:10px}
+.tc .logos{position:absolute;right:24px;bottom:24px;display:grid;grid-template-columns:repeat(2,56px);gap:8px}
+.tc .lt{width:56px;height:56px;padding:11px;border-radius:15px;box-shadow:none}
+.tc .lt.wm{padding:5px}
+
+#s6{z-index:40}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><div id="glow"></div></div>
+
+  <section id="s1" class="title">
+    <div class="wrap">
+      <img class="ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <div class="kicker">rwaf.xyz · Ecosystem directory</div>
+      <h1 class="display"><span class="mask"><span>Inside the</span></span><span class="mask"><span class="o">RWA ecosystem.</span></span></h1>
+      <p class="sub" id="s1sub"></p>
+    </div>
+  </section>
+
+  <div class="slide" id="chart">
+    <div class="head">
+      <div class="kicker">Active companies by sector</div>
+      <h2 class="display"><span class="mask"><span>The biggest sectors</span></span></h2>
+    </div>
+    <div id="bars"></div>
+    <p class="foot">Companies can appear in more than one sector.</p>
+  </div>
+  <div id="spots"></div>
+  <div class="slide" id="tail">
+    <div class="head">
+      <div class="kicker">Specialist sectors</div>
+      <h2 class="display"><span class="mask"><span id="tailh"></span></span></h2>
+    </div>
+    <div id="cards"></div>
+  </div>
+
+  <section id="s5" class="walk">
+    <div id="win">
+      <div class="chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <div class="url"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="urltext"></span><span id="urlcaret"></span></div>
+        <div id="loadbar"></div>
+      </div>
+      <div class="content"><iframe id="site" title="RWA ecosystem directory" src="about:blank"></iframe></div>
+    </div>
+    <div class="pill"><span class="n">1</span>Go to <span class="u">rwaf.xyz/ecosystem</span></div>
+    <div class="pill"><span class="n">2</span>Open the Ecosystem map</div>
+    <div class="pill"><span class="n">3</span>Browse every sector</div>
+  </section>
+
+  <section id="s6" class="endcard">
+    <div class="wrap">
+      <img class="ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <h2 class="display"><span class="mask"><span>Explore the RWA map</span></span></h2>
+      <div class="cta">rwaf.xyz/ecosystem<span class="arr"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      <p class="note">Missing a project? Submit it from the same page.</p>
+    </div>
+    <img class="wally" src="/assets/brand/wally-3d.png" alt="">
+  </section>
+
+  <div id="wipe"><img src="/assets/brand/rwa-elephant-white.png" alt=""></div>
+</div>
+
+<script src="/video/kit.js"></script>
+<script>
+/* Sector breakdown. Counts are unique current ("active") profiles, computed from
+   data/ecosystem-directory.json at render time, as the site's map counts them. */
+const FPS=30;
+// The original import bucket is provenance and Historical is a status, not sectors.
+const NOT_SECTORS=['RWAF directory','Historical'];
+const SPOTS=6, SPOT=3.6, MAX_CATS=4;
+
+const T=(()=>{
+  const spot0=10, tail=spot0+SPOT*SPOTS, walk=tail+6.2, end=walk+10.4;
+  return {
+    s1:[0,3.65], wipe1:[3.25,3.65,3.75,4.15], bars:4.35,
+    spot0, tail, walkWipe:[walk-.4,walk,walk+.1,walk+.5],
+    s5:[walk,end+.5], enter:[walk+.1,walk+.8], url:[walk+.8,walk+1.45], load:[walk+1.45,walk+1.8],
+    tabClick:walk+3, scroll:[walk+3.9,walk+9.6],
+    pills:[[walk+.65,walk+2],[walk+2,walk+3.9],[walk+3.9,end]],
+    end, duration:end+5.3,
+  };
+})();
+const DURATION=T.duration;
+const spotStart=i=>T.spot0+i*SPOT;
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+
+/* ---------- data ---------- */
+let DATA=null,S=null;
+function sectorsFrom(data){
+  const byId=Object.fromEntries(data.profiles.map(p=>[p.id,p]));
+  const current=id=>byId[id]?.directoryStatus==='current';
+  const logoOK=id=>/\.(svg|png|jpe?g|webp)$/i.test(byId[id].logo?.src||'');
+  const sectors=data.sections.filter(s=>!NOT_SECTORS.includes(s.name)).map(s=>{
+    const ids=[...new Set(s.categories.flatMap(c=>c.ids))].filter(current);
+    const cats=s.categories.map(c=>({name:c.name,count:new Set(c.ids.filter(current)).size})).filter(c=>c.count).sort((a,b)=>b.count-a.count);
+    return {name:s.name,count:ids.length,cats,logos:ids.filter(logoOK).map(id=>byId[id])};
+  }).filter(s=>s.count).sort((a,b)=>b.count-a.count);
+  return {sectors,active:data.profiles.filter(p=>p.directoryStatus==='current').length};
+}
+const tile=(p,cls='lt')=>tileHTML(p.logo,cls);
+
+/* ---------- setup ---------- */
+function setupScenes(){
+  const top=DATA.sectors.slice(0,SPOTS),rest=DATA.sectors.slice(SPOTS);
+  $('#s1sub').innerHTML=`<b>${fmt(DATA.active)}</b> active companies across <b>${DATA.sectors.length}</b> sectors`;
+  $('#bars').innerHTML=top.map(s=>`<div class="brow"><div class="lbl">${s.name}</div><div class="track"><div class="bar"></div><div class="val"></div></div></div>`).join('');
+  $('#spots').innerHTML=top.map((s,i)=>{
+    const single=s.cats.length<2,shown=s.cats.slice(0,MAX_CATS),more=s.cats.length-shown.length;
+    const right=single
+      ?`<div class="grid">${s.logos.slice(0,15).map(p=>`<div class="g">${tile(p)}<div class="nm">${p.name}</div></div>`).join('')}</div>`
+      :`<div class="cats">${shown.map(c=>`<div class="cat"><div class="lbl">${c.name}</div><div class="track"><div class="bar"></div><div class="val"></div></div></div>`).join('')}${more?`<p class="more">+ ${more} more ${more===1?'category':'categories'}</p>`:''}</div><div class="strip">${s.logos.slice(0,12).map(p=>tile(p)).join('')}</div>`;
+    return `<div class="slide spot" data-i="${i}"><div class="kicker"><b>${String(i+1).padStart(2,'0')} / ${String(SPOTS).padStart(2,'0')}</b>Sector</div><h2 class="display"><span class="mask"><span>${s.name}</span></span></h2><div class="count"><div class="num display">0</div><div class="lbl">active companies</div></div>${right}</div>`;
+  }).join('');
+  $('#tailh').textContent=`And ${rest.length} more sectors`;
+  $('#cards').innerHTML=rest.map(s=>`<div class="tc"><div class="nm">${s.name}</div><div class="num display">0</div><div class="unit">active companies</div><div class="logos">${s.logos.slice(0,4).map(p=>tile(p)).join('')}</div></div>`).join('');
+}
+// Long sector names shrink to the frame width.
+function fitNames(){
+  document.querySelectorAll('.spot').forEach(el=>{
+    el.style.display='block';
+    const h=el.querySelector('h2'),w=h.scrollWidth;
+    if(w>1680)h.style.fontSize=(128*1680/w)+'px';
+    el.style.display='';
+  });
+}
+async function setupSite(){
+  const site=await loadSite('/ecosystem/'),{q,D:doc}=site;
+  const tab=name=>[...doc.querySelectorAll('.ec-views button')].find(b=>b.textContent.trim()===name);
+  const r=tab('Ecosystem map').getBoundingClientRect();
+  // Warm every map logo once so the switch renders from cache.
+  tab('Ecosystem map').click();
+  doc.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager';});
+  await Promise.race([Promise.all([...doc.images].map(i=>i.decode().catch(()=>{}))),new Promise(r=>setTimeout(r,20000))]);
+  tab('Directory').click();
+  S={...site,tab,mapTab:{x:r.left+r.width/2,y:r.top+r.height/2}};
+}
+
+/* ---------- scenes ---------- */
+// Slides in from the right at `start` (unless null) and out to the left at `end`.
+function slide(el,t,start,end){
+  const on=(start===null||t>=start)&&(end===null||t<end+.5);
+  el.style.display=on?'block':'none';
+  if(!on)return false;
+  const pin=start===null?1:E.io3(prog(t,start,start+.5)),pout=end===null?0:E.io3(prog(t,end,end+.5));
+  el.style.transform=`translateX(${(1-pin)*1920-pout*1920}px)`;
+  return true;
+}
+// Grows a bar to `share` of its track and counts its value label up alongside.
+function growBar(row,t,start,share,value,dur=.9){
+  const p=E.out3(prog(t,start,start+dur)),bar=row.querySelector('.bar'),val=row.querySelector('.val');
+  bar.style.width=(share*p*100)+'%';
+  val.textContent=fmt(value*p);val.style.left=`calc(${share*p*100}% + 18px)`;val.style.opacity=clamp(prog(t,start,start+.2));
+}
+function renderChart(t){
+  const el=$('#chart');
+  if(!slide(el,t,null,T.spot0))return;
+  fadeUp(el.querySelector('.kicker'),t,3.95,.45,20);
+  reveal(el.querySelector('h2 .mask>span'),t,4.05,.5);
+  const max=DATA.sectors[0].count;
+  el.querySelectorAll('.brow').forEach((row,i)=>{
+    const s=DATA.sectors[i],st=T.bars+i*.16;
+    fadeUp(row.querySelector('.lbl'),t,st,.4,16);
+    growBar(row,t,st,s.count/max,s.count);
+  });
+  fadeUp(el.querySelector('.foot'),t,5.6,.5,12);
+}
+function renderSpot(el,i,t){
+  const st=spotStart(i);
+  if(!slide(el,t,st,i===SPOTS-1?T.tail:st+SPOT))return;
+  const u=t-st,s=DATA.sectors[i];
+  fadeUp(el.querySelector('.kicker'),u,.25,.4,16);
+  reveal(el.querySelector('h2 .mask>span'),u,.3,.5);
+  el.querySelector('.num').textContent=fmt(s.count*E.out3(prog(u,.35,1.3)));
+  fadeUp(el.querySelector('.count .lbl'),u,.5,.45,18);
+  // Category bars are shares of the sector's unique companies; placements can overlap.
+  el.querySelectorAll('.cat').forEach((row,j)=>{
+    const c=s.cats[j],st2=.6+j*.12;
+    fadeUp(row.querySelector('.lbl'),u,st2,.4,12);
+    growBar(row,u,st2,c.count/s.count,c.count,.75);
+  });
+  const more=el.querySelector('.more');if(more)fadeUp(more,u,1.3,.4,10);
+  el.querySelectorAll('.grid .g, .strip .lt').forEach((g,j)=>{
+    const st3=(g.classList.contains('g')?.6:.95)+j*.04,p=E.back(prog(u,st3,st3+.4));
+    g.style.opacity=clamp(prog(u,st3,st3+.15));g.style.transform=`translateY(${(1-p)*30}px) scale(${.75+.25*p})`;
+  });
+}
+function renderTail(t){
+  const el=$('#tail');
+  if(!slide(el,t,T.tail,null))return;
+  if(t>=T.walkWipe[1]){el.style.display='none';return;}
+  const u=t-T.tail;
+  fadeUp(el.querySelector('.kicker'),u,.25,.4,16);
+  reveal(el.querySelector('h2 .mask>span'),u,.35,.5);
+  el.querySelectorAll('.tc').forEach((c,i)=>{
+    const st=.6+i*.07,p=E.back(prog(u,st,st+.45));
+    c.style.opacity=clamp(prog(u,st,st+.15));c.style.transform=`translateY(${(1-p)*36}px) scale(${.85+.15*p})`;
+    c.querySelector('.num').textContent=fmt(DATA.sectors[SPOTS+i].count*E.out3(prog(u,st,st+.8)));
+  });
+}
+
+/* ---------- walkthrough (inside the real page) ---------- */
+const SCROLL_TO=1750;
+function cursorAt(t){
+  const w=T.s5[0];
+  return track(t,{x:1250,y:980},[
+    [w+2.05,w+2.9,{x:S.mapTab.x+10,y:S.mapTab.y+6}],
+    [T.tabClick+.35,T.tabClick+1.1,{x:1010,y:620}],
+  ]);
+}
+function cameraAt(t){
+  const w=T.s5[0];
+  return track(t,{px:720,py:430,z:.86},[
+    [w+1.95,w+2.8,cover({px:470,py:S.mapTab.y-40,z:1.5})],
+    // The map's first two columns, close enough to read the logos.
+    [T.tabClick+.3,T.tabClick+1.1,cover({px:565,py:450,z:1.7})],
+  ]);
+}
+function renderSite(t){
+  const map=t>=T.tabClick;
+  let wait;
+  if(map!==S.last.map){
+    S.tab(map?'Ecosystem map':'Directory').click();S.last.map=map;
+    if(map){
+      const imgs=[...S.D.images];imgs.forEach(i=>{i.loading='eager';});
+      wait=Promise.race([Promise.all(imgs.map(i=>i.decode().catch(()=>{}))),new Promise(r=>setTimeout(r,15000))]);
+    }
+  }
+  S.W.scrollTo(0,map?SCROLL_TO*E.io3(prog(t,...T.scroll)):0);
+  renderCursor(S,t,cursorAt(t),[T.tabClick],T.s5[0]+2);
+  return wait;
+}
+
+/* ---------- frame ---------- */
+function renderFrame(t){
+  renderGlow(t);
+  const s1=inRange(t,T.s1);show($('#s1'),s1);
+  if(s1)renderTitle($('#s1'),t);
+  renderWipe(t,[T.wipe1,T.walkWipe]);
+  renderChart(t);
+  document.querySelectorAll('.spot').forEach((el,i)=>renderSpot(el,i,t));
+  renderTail(t);
+
+  let wait;
+  const s5=inRange(t,T.s5);$('#s5').style.visibility=s5?'visible':'hidden';
+  if(s5){
+    wait=renderSite(t);
+    renderBrowser(t,cameraAt(t),T);
+    renderPills(t,$('#s5'),T.pills);
+  }
+
+  // End card rises over the walkthrough.
+  const s6=t>=T.end-.45;show($('#s6'),s6);
+  if(s6){
+    $('#s6').style.transform=`translateY(${(1-E.io3(prog(t,T.end-.45,T.end)))*100}%)`;
+    renderEndcard($('#s6'),t,T.end);
+  }
+  return wait;
+}
+
+/* ---------- sound cues (synthesized by sfx.py) ---------- */
+function sfxEvents(){
+  const ev=[{t:.14,k:'pop'},{t:.5,k:'thud'},{t:.64,k:'thud'}];
+  for(const w of [T.wipe1,T.walkWipe])ev.push({t:w[0]-.05,k:'whoosh'});
+  for(let i=0;i<SPOTS;i++)ev.push({t:T.bars+i*.16,k:'pop',p:.55});
+  for(let i=0;i<=SPOTS;i++){
+    const st=i<SPOTS?spotStart(i):T.tail;
+    ev.push({t:st-.02,k:'whoosh',p:.45});
+    if(i<SPOTS){
+      ev.push({t:st+.3,k:'thud',p:.7});
+      for(let k=0;k<10;k++)ev.push({t:st+.35+.95*(1-Math.pow(1-k/10,1/3)),k:'tick',p:k/10});
+    }
+  }
+  for(let i=SPOTS;i<DATA.sectors.length;i++)ev.push({t:T.tail+.6+(i-SPOTS)*.07,k:'pop',p:.4});
+  for(const c of charTimes('rwaf.xyz/ecosystem',T.url))ev.push({t:c,k:'key'});
+  ev.push({t:T.tabClick,k:'click'},{t:T.end-.47,k:'whoosh'},{t:T.end,k:'final'});
+  return ev.sort((a,b)=>a.t-b.t);
+}
+
+window.stageReady=(async()=>{
+  const data=await (await fetch('/data/ecosystem-directory.json')).json();
+  DATA=sectorsFrom(data);
+  setupScenes();
+  await setupSite();
+  await loadFonts();await imagesLoaded(document);
+  fitNames();
+  renderFrame(0);
+  return {fps:FPS,duration:DURATION,sfx:sfxEvents()};
+})();
+</script>
+</body>
+</html>

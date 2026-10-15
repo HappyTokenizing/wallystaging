@@ -1,6 +1,7 @@
-// Renders stage.html frame by frame with headless Chromium and encodes an MP4.
-//   node video/ecosystem-submissions/render.mjs                 full video
-//   node video/ecosystem-submissions/render.mjs --stills 1,12   PNG stills only
+// Renders video/<name>/stage.html frame by frame with headless Chromium and
+// encodes video/<name>/rwaf-<name>.mp4.
+//   node video/render.mjs ecosystem-categories                 full video
+//   node video/render.mjs ecosystem-categories --stills 1,12   PNG stills only
 // Needs Playwright (global install is fine), ffmpeg and python3 with numpy.
 import http from 'node:http';
 import fs from 'node:fs';
@@ -9,12 +10,18 @@ import {execSync, spawn} from 'node:child_process';
 import {fileURLToPath, pathToFileURL} from 'node:url';
 
 const here=path.dirname(fileURLToPath(import.meta.url));
-const root=path.resolve(here,'../..');
-const args=Object.fromEntries(process.argv.slice(2).reduce((acc,a,i,all)=>{
+const root=path.resolve(here,'..');
+const [name,...flags]=process.argv.slice(2);
+if(!name||!fs.existsSync(path.join(here,name,'stage.html'))){
+  console.error('usage: node video/render.mjs <name> [--stills t1,t2] [--from s --to s] [--out file] [--no-audio]');
+  process.exit(1);
+}
+const args=Object.fromEntries(flags.reduce((acc,a,i,all)=>{
   if(a.startsWith('--'))acc.push([a.slice(2),all[i+1]&&!all[i+1].startsWith('--')?all[i+1]:true]);
   return acc;
 },[]));
-const out=path.resolve(args.out||path.join(here,'rwaf-ecosystem-submissions.mp4'));
+const dir=path.join(here,name);
+const out=path.resolve(args.out||path.join(dir,`rwaf-${name}.mp4`));
 
 async function loadPlaywright(){
   try{return await import('playwright');}catch{}
@@ -45,18 +52,19 @@ const {chromium}=await loadPlaywright();
 const browser=await chromium.launch();
 const page=await browser.newPage({viewport:{width:1920,height:1080},deviceScaleFactor:1});
 page.on('pageerror',e=>console.error('page error:',e.message));
-await page.goto(`http://127.0.0.1:${server.address().port}/video/ecosystem-submissions/stage.html`,{waitUntil:'networkidle'});
+await page.goto(`http://127.0.0.1:${server.address().port}/video/${name}/stage.html`,{waitUntil:'networkidle'});
 const meta=await page.evaluate(()=>window.stageReady);
+// renderFrame may return a promise (e.g. waiting for images a view switch added).
 const shoot=async t=>{await page.evaluate(t=>renderFrame(t),t);return page.screenshot({type:'png'});};
 
 try{
   if(args.stills){
-    const dir=path.resolve(args['stills-dir']||path.join(here,'stills'));
-    fs.mkdirSync(dir,{recursive:true});
+    const stills=path.resolve(args['stills-dir']||path.join(dir,'stills'));
+    fs.mkdirSync(stills,{recursive:true});
     for(const t of String(args.stills).split(',').map(Number)){
-      fs.writeFileSync(path.join(dir,`t${t.toFixed(2).padStart(5,'0')}.png`),await shoot(t));
+      fs.writeFileSync(path.join(stills,`t${t.toFixed(2).padStart(5,'0')}.png`),await shoot(t));
     }
-    console.log('stills written to',dir);
+    console.log('stills written to',stills);
   }else{
     const from=Number(args.from||0),to=Number(args.to||meta.duration);
     const audio=!args['no-audio'];
