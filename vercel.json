@@ -3,6 +3,10 @@
     {
       "path": "/api/collect-news",
       "schedule": "*/5 * * * *"
+    },
+    {
+      "path": "/api/submission-emails",
+      "schedule": "* * * * *"
     }
   ],
   "functions": {
@@ -14,6 +18,9 @@
     },
     "api/company-news.js": {
       "maxDuration": 60
+    },
+    "api/submission-emails.js": {
+      "maxDuration": 60
     }
   },
   "buildCommand": "npm run build",
@@ -21,6 +28,11 @@
     {
       "source": "/members",
       "destination": "/members/",
+      "permanent": true
+    },
+    {
+      "source": "/membership",
+      "destination": "/membership/",
       "permanent": true
     },
     {
@@ -91,6 +103,81 @@
     {
       "source": "/research/market-structure-aug-2026",
       "destination": "/research/market-structure-aug-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/avalanche-rwa-growth-oct-2026",
+      "destination": "/research/avalanche-rwa-growth-oct-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-dex-defi-oct-12-2026",
+      "destination": "/research/rwa-dex-defi-oct-12-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-weekly-oct-12-2026",
+      "destination": "/research/rwa-weekly-oct-12-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-weekly-oct-8-2026",
+      "destination": "/research/rwa-weekly-oct-8-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-blockchains-ytd-oct-2026",
+      "destination": "/research/rwa-blockchains-ytd-oct-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-weekly-holders-oct-5-2026",
+      "destination": "/research/rwa-weekly-holders-oct-5-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-weekly-market-cap-oct-5-2026",
+      "destination": "/research/rwa-weekly-market-cap-oct-5-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/tokenized-stocks-q3-2026",
+      "destination": "/research/tokenized-stocks-q3-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/tokenized-credit-q3-2026",
+      "destination": "/research/tokenized-credit-q3-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/stablecoins-q3-2026",
+      "destination": "/research/stablecoins-q3-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/market-structure-sep-2026",
+      "destination": "/research/market-structure-sep-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-perps-sep-28-2026",
+      "destination": "/research/rwa-perps-sep-28-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/tokenized-stocks-weekly-sep-28-2026",
+      "destination": "/research/tokenized-stocks-weekly-sep-28-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/stablecoin-weekly-sep-28-2026",
+      "destination": "/research/stablecoin-weekly-sep-28-2026/",
+      "permanent": true
+    },
+    {
+      "source": "/research/rwa-weekly-sep-20-2026",
+      "destination": "/research/rwa-weekly-sep-20-2026/",
       "permanent": true
     },
     {

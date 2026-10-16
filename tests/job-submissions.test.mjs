@@ -12,9 +12,9 @@ test('submissions are private, require approval, omit contact details publicly a
  const {h}=setup();assert.equal((await call(h,{action:'submit',job:{...job,status:'live',featured:1,id:'chosen'}})).status,200);
  assert.deepEqual((await call(h,null,'GET')).body.jobs,[]);
  assert.equal((await call(h,{action:'list_all',pw:'wrong'})).status,401);
- let a=await admin(h);const row=a.body.jobs[0];assert.equal(row.status,'pending');assert.notEqual(row.id,'chosen');assert.equal(row.featured,undefined);
+ let a=await admin(h);const row=a.body.jobs[0];assert.equal(row.status,'pending');assert.notEqual(row.id,'chosen');assert.equal(row.featured,undefined);assert.equal(row.notifications.received.status,'pending');assert.equal(row.notifications.received.to,job.email);
  assert.equal((await admin(h,{action:'moderate',id:row.id,status:'live',revision:a.body.revision})).status,200);
- const pub=(await call(h,null,'GET')).body.jobs;assert.equal(pub.length,1);assert.equal(pub[0].email,undefined);assert.equal(pub[0].member,undefined);
+ const pub=(await call(h,null,'GET')).body.jobs;assert.equal(pub.length,1);assert.equal(pub[0].email,undefined);assert.equal(pub[0].member,undefined);assert.equal(pub[0].notifications,undefined);const published=await admin(h);assert.equal(published.body.jobs[0].notifications.published.status,'pending');const noticeId=published.body.jobs[0].notifications.published.id;await admin(h,{action:'moderate',id:row.id,status:'live',revision:published.body.revision});assert.equal((await admin(h)).body.jobs[0].notifications.published.id,noticeId);
  assert.equal((await admin(h,{action:'moderate',id:row.id,status:'closed',revision:a.body.revision})).status,409);
  a=await admin(h);await admin(h,{action:'moderate',id:row.id,status:'closed',revision:a.body.revision});assert.equal((await call(h,null,'GET')).body.jobs.length,0);
 });
@@ -27,7 +27,10 @@ test('honeypots, cross-site requests, malformed fields and unsafe links never cr
 });
 test('repeat submissions deduplicate and concurrent writes preserve all records',async()=>{
  const {h}=setup();const requests=await Promise.all(['A','B'].map(company=>call(h,{action:'submit',job:{...job,company}})));assert.ok(requests.every(r=>r.status===200));
- await call(h,{action:'submit',job:{...job,company:'A'}});assert.equal((await admin(h)).body.jobs.length,2);
+ assert.deepEqual(requests.map(r=>r.body.reference).sort(),['J-000001','J-000002']);
+ const repeated=await call(h,{action:'submit',job:{...job,company:'A'}});const rows=(await admin(h)).body.jobs;assert.equal(rows.length,2);
+ assert.equal(repeated.body.reference,rows.find(r=>r.company==='A').reference);
+ for(const row of rows){assert.equal(Object.values(row.notifications).length,3);assert.equal(row.notifications.received.reference,row.reference);assert.ok(row.notifications['team:flynn@rwaf.xyz']);assert.ok(row.notifications['team:zeus@rwaf.xyz']);}
 });
 test('storage failures never claim success and hashed admin credentials work',async()=>{
  const h=createJobsHandler({async get(){throw Error('offline')}});assert.equal((await call(h,{action:'submit',job})).status,502);
