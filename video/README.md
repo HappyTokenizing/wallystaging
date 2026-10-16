@@ -7,6 +7,7 @@ Promo videos for X, rendered from HTML at 30 fps and encoded as H.264 with AAC s
 | `ecosystem-submissions/` | How to submit a project to the ecosystem directory | 1920 × 1080 | 31.5 s |
 | `ecosystem-categories/` | The directory's sectors and their categories | 1920 × 1080 | 53.5 s |
 | `onchain-never-sleeps/` | The "Onchain finance never sleeps" lunch-break lock screen | 1080 × 1080 | 27 s |
+| `research-reports/` | The Research section's report series, with the Solana Ecosystem Report teaser | 1920 × 1080 | 50.9 s |
 
 Each folder holds a `stage.html` composition and its rendered MP4. Shared parts live alongside them:
 
@@ -91,3 +92,19 @@ This video animates the RWA Foundation's 15 October 2026 post: "When rails run 2
 - The lock screen is rebuilt in HTML from the post's picture: its layout, notification copy, timestamps and sampled colours. Each "Xm ago" label follows the clock, so the final frame matches the picture.
 - The punchline uses Lora, the closest Google Font to the picture's serif.
 - The app icons are the bundled directory logos, used unmodified on plain tiles. The Securitize and Aave marks are their dark-on-light versions, where the picture used light-on-colour app icons. Kraken has only its official 48 px favicon (`ecosystem/kraken-community-20261007.ico`), so it is slightly soft when the camera zooms in. A larger official asset could not be fetched because `kraken.com` and `x.com` are outside this environment's network policy.
+
+## Research Reports
+
+| Time | Scene |
+| --- | --- |
+| 0–3.6 s | Title: "Data the herd can trust", the Research page's own headline |
+| 3.6–8.6 s | A wall of the original report charts with the archive totals: reports, series and figures |
+| 8.3–26.3 s | One card per series: its kicker as numbered on the site, description, editions, data providers and three charts from recent editions |
+| 26.3–39.6 s | Walkthrough: open `/research/`, scroll to RWA Blockchains, open "Who Builds on Avalanche", then scroll to its first two charts |
+| 39.6–45.6 s | Teaser: "Solana Ecosystem Report", coming soon, sliding in above the Avalanche report in the RWA Blockchains series |
+| 45.6–50.9 s | End card: "Read the research", `rwaf.xyz/research` |
+
+- The counts, series, editions, data providers and charts come from `data/research-reports.json` and `data/reports/` at render time. The series kickers are read from the generated `/research/` page.
+- Provider logos are labelled "Data providers", and Avalanche is shown only as the featured chain, following the README's research credit rules.
+- The report opens in a second, preloaded frame, so the click switches pages without waiting on a network load.
+- The Solana Ecosystem Report has no published data, so the teaser shows only its title, the featured chain and a "Coming soon" tag. It is placed in RWA Blockchains because the README assigns network ecosystem research to that series. The Solana mark is the official logomark in `assets/member-icons/solana.svg`.

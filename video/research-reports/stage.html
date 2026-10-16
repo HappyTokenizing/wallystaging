@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>Research Reports Video</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..125,400..900&family=Instrument+Sans:wght@400..700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/video/kit.css">
+<style>
+.slide{position:absolute;inset:0;display:none}
+
+/* chart wall */
+#wallscene{background:var(--night)}
+#wall{position:absolute;left:50%;top:50%;width:3600px;margin-left:-1800px;transform-origin:50% 0}
+.row{position:relative;height:300px;margin-bottom:26px}
+.row .strip{position:absolute;left:0;top:0;display:flex;gap:26px}
+.row img{width:300px;height:300px;border-radius:22px;display:block;flex:none}
+#vig{position:absolute;inset:0;background:radial-gradient(ellipse 60% 56% at 50% 50%,rgba(20,14,8,.95) 0%,rgba(20,14,8,.86) 40%,rgba(20,14,8,.4) 78%,rgba(20,14,8,.22) 100%)}
+#stats{position:absolute;left:0;right:0;top:290px;display:flex;justify-content:center;gap:110px;color:#fff;text-align:center}
+#stats .num{font-size:200px;line-height:.9}
+#stats .lbl{font-family:var(--mono);font-size:30px;letter-spacing:.2em;text-transform:uppercase;color:#FFB27F;margin-top:26px}
+#archive{position:absolute;left:0;right:0;top:700px;text-align:center;font-size:44px;color:rgba(244,241,234,.86)}
+
+/* series cards */
+.series .left{position:absolute;left:120px;top:150px;width:820px}
+.series .kicker{color:var(--orange2);font-size:22px;letter-spacing:.16em;white-space:nowrap}
+.series h2{font-size:100px;margin-top:26px}
+.series .desc{font-size:31px;line-height:1.45;color:var(--text2);margin-top:30px}
+.series .meta{font-family:var(--mono);font-size:24px;letter-spacing:.06em;color:var(--text);margin-top:34px}
+.series .meta b{color:var(--orange2);font-weight:600}
+.series .prov{margin-top:40px}
+.series .prov .k{font-family:var(--mono);font-size:20px;letter-spacing:.16em;color:var(--text3)}
+.credits{display:flex;gap:14px;margin-top:14px;flex-wrap:wrap}
+.credit{display:inline-flex;align-items:center;gap:12px;height:66px;padding:0 20px;border:1px solid var(--line);border-radius:14px;background:#fff;font-weight:600;font-size:22px;white-space:nowrap}
+.credit.dark{background:#0b0b0b;border-color:#0b0b0b;color:#fff}
+.credit.wordmark img{height:38px;width:auto}
+.credit.symbol img{height:40px;width:40px}
+.fan{position:absolute;left:1430px;top:560px}
+.fan img{position:absolute;width:500px;height:500px;left:-250px;top:-250px;border-radius:26px;box-shadow:0 40px 80px -30px rgba(32,26,19,.5),0 0 0 1px rgba(32,26,19,.08)}
+
+/* walkthrough: the report opens in a second frame */
+#site2{position:absolute;left:0;top:0;width:1440px;height:900px;border:0;display:block;opacity:0}
+
+/* Solana teaser */
+#soon{background:var(--night);color:#fff}
+#soon .glow{position:absolute;width:1300px;height:1300px;left:900px;top:-260px;border-radius:50%;background:radial-gradient(circle,rgba(153,69,255,.32),rgba(20,241,149,.1) 45%,rgba(20,14,8,0) 70%)}
+#soon .kicker{position:absolute;left:120px;top:110px;color:#FFB27F}
+#soon h2{position:absolute;left:120px;top:160px;font-size:132px}
+#soon .chip{position:absolute;left:120px;top:478px;display:flex;align-items:center;gap:18px;font-family:var(--mono);font-size:22px;letter-spacing:.14em;color:rgba(244,241,234,.7)}
+#soon .chip .c{display:flex;align-items:center;gap:12px;height:62px;padding:0 22px 0 14px;border-radius:14px;background:#0b0b0b;border:1px solid #2a231d;font-family:var(--body);font-size:24px;font-weight:600;letter-spacing:0;color:#fff}
+#soon .chip img{width:36px;height:36px}
+#rows{position:absolute;left:120px;top:600px;width:1680px;height:330px;border-radius:26px;background:var(--card);color:var(--text);overflow:hidden;box-shadow:0 40px 90px -40px rgba(0,0,0,.7)}
+#rows .hd{display:flex;justify-content:space-between;align-items:center;height:76px;padding:0 36px;border-bottom:1px solid var(--line)}
+#rows .hd .kicker{position:static;color:var(--orange2);font-size:20px}
+#rows .hd b{font-family:var(--display);font-weight:820;font-stretch:116%;text-transform:uppercase;font-size:30px;letter-spacing:-.01em}
+.ed{position:absolute;left:24px;right:24px;height:118px;display:grid;grid-template-columns:250px 1fr auto 40px;align-items:center;gap:24px;padding:0 20px;border-bottom:1px solid var(--line)}
+.ed .date{font-family:var(--mono);font-size:22px;letter-spacing:.08em;color:var(--text3)}
+.ed .nm{display:flex;align-items:center;gap:18px;font-weight:600;font-size:34px}
+.ed .nm small{display:block;font-weight:400;font-size:22px;color:var(--text3);margin-top:4px}
+.ed .ch{width:64px;height:64px;border-radius:14px;background:#0b0b0b;display:flex;align-items:center;justify-content:center;flex:none}
+.ed .ch img{width:42px;height:42px}
+.ed .tag{font-family:var(--mono);font-size:19px;font-weight:700;letter-spacing:.1em;color:var(--orange2);background:rgba(255,98,0,.08);border-radius:999px;padding:10px 20px}
+.ed.new .tag{color:#fff;background:linear-gradient(90deg,#9945FF,#14F195)}
+.ed .arr{font-size:34px;color:var(--text3)}
+
+.endcard .cta{font-size:56px}
+#s9{z-index:40}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="bg"><div id="glow"></div></div>
+
+  <section id="s1" class="title">
+    <div class="wrap">
+      <img class="ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <div class="kicker">rwaf.xyz · Research</div>
+      <h1 class="display"><span class="mask"><span>Data the herd</span></span><span class="mask"><span>can <span class="o">trust.</span></span></span></h1>
+      <p class="sub" id="s1sub"></p>
+    </div>
+  </section>
+
+  <section id="wallscene">
+    <div id="wall"></div>
+    <div id="vig"></div>
+    <div id="stats"></div>
+    <p id="archive">Every edition kept in the archive.</p>
+  </section>
+
+  <div id="seriesbox"></div>
+
+  <section id="s5" class="walk">
+    <div id="win">
+      <div class="chrome">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <div class="url"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span id="urltext"></span><span id="urlcaret"></span></div>
+        <div id="loadbar"></div>
+      </div>
+      <div class="content"><iframe id="site" title="RWA research" src="about:blank"></iframe><iframe id="site2" title="RWA research report" src="about:blank"></iframe></div>
+    </div>
+    <div class="pill"><span class="n">1</span>Go to <span class="u">rwaf.xyz/research</span></div>
+    <div class="pill"><span class="n">2</span>Pick a report</div>
+    <div class="pill"><span class="n">3</span>Read every chart and its sources</div>
+  </section>
+
+  <section id="soon">
+    <div class="glow"></div>
+    <div class="kicker">Coming soon</div>
+    <h2 class="display"><span class="mask"><span>Solana ecosystem</span></span><span class="mask"><span class="o">report</span></span></h2>
+    <div class="chip">FEATURED CHAIN<span class="c"><img src="/assets/member-icons/solana.svg" alt="">Solana</span></div>
+    <div id="rows">
+      <div class="hd"><span class="kicker" id="soonkick"></span><b>RWA Blockchains</b></div>
+      <div class="ed new" id="edSol"><span class="date">COMING SOON</span><span class="nm"><span class="ch"><img src="/assets/member-icons/solana.svg" alt=""></span><span>Solana Ecosystem Report<small>RWA Foundation Research · Featured chain: Solana</small></span></span><span class="tag">COMING SOON</span><span class="arr">→</span></div>
+      <div class="ed" id="edAvax"><span class="date" id="avaxDate"></span><span class="nm"><span class="ch"><img src="/ecosystem/avalanche-logo-v2.svg" alt=""></span><span id="avaxName"><small></small></span></span><span class="tag">LATEST</span><span class="arr">→</span></div>
+    </div>
+  </section>
+
+  <section id="s9" class="endcard">
+    <div class="wrap">
+      <img class="ele" src="/assets/brand/rwa-elephant-white.png" alt="">
+      <h2 class="display"><span class="mask"><span>Read the research</span></span></h2>
+      <div class="cta">rwaf.xyz/research<span class="arr"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></span></div>
+      <p class="note">Solana Ecosystem Report coming soon.</p>
+    </div>
+    <img class="wally" src="/assets/brand/wally-3d.png" alt="">
+  </section>
+
+  <div id="wipe"><img src="/assets/brand/rwa-elephant-white.png" alt=""></div>
+</div>
+
+<script src="/video/kit.js"></script>
+<script>
+/* Research section promo. Report counts, series, data providers and charts come
+   from data/research-reports.json and data/reports/ at render time; the Solana
+   Ecosystem Report is announced as coming soon, with no data shown for it. */
+const FPS=30;
+const SER=3.0;  // seconds per series card
+
+const T=(()=>{
+  const ser0=8.3, walk=ser0+SER*6, soon=walk+13.3, end=soon+6;
+  return {
+    s1:[0,3.65], wipe1:[3.25,3.65,3.75,4.15], wall:[3.65,ser0+.5], ser0,
+    walkWipe:[walk-.4,walk,walk+.1,walk+.5], s5:[walk,soon],
+    enter:[walk+.1,walk+.8], url:[walk+.8,walk+1.3], load:[walk+1.3,walk+1.65],
+    hero:[walk+1.7,walk+2.6], scroll1:[walk+2.9,walk+4.3], click:walk+4.85,
+    nav:[walk+5.0,walk+5.45], scroll2:[walk+6.6,walk+8.6], scroll3:[walk+10.1,walk+12.0],
+    pills:[[walk+.65,walk+3.1],[walk+3.1,walk+5.3],[walk+5.3,walk+12.9]],
+    soonWipe:[soon-.4,soon,soon+.1,soon+.5], soon:[soon,end], solRow:soon+2.1,
+    end, duration:end+5.3,
+  };
+})();
+const DURATION=T.duration;
+const fmt=n=>Math.round(n).toLocaleString('en-US');
+
+/* ---------- data ---------- */
+let R=null,S1=null,S2=null;
+async function loadReports(){
+  const cat=await (await fetch('/data/research-reports.json')).json();
+  const reports=[...cat.reports].sort((a,b)=>b.publishedAt.localeCompare(a.publishedAt));
+  const bodies={};
+  await Promise.all(reports.map(async r=>{const res=await fetch(`/data/reports/${r.slug}.json`);if(res.ok)bodies[r.slug]=await res.json();}));
+  const charts=slug=>(bodies[slug]?.blocks||[]).filter(b=>b.type==='figure').flatMap(b=>(b.images||[]).map(i=>i.src));
+  // Three charts per series: the lead chart of each recent edition, then more from the latest.
+  const series=cat.series.map(s=>{
+    const eds=reports.filter(r=>r.series===s.id),withCharts=eds.filter(r=>charts(r.slug).length);
+    const pick=[...new Set([...withCharts.slice(0,3).map(r=>charts(r.slug)[0]),...(withCharts[0]?charts(withCharts[0].slug):[])])].slice(0,3);
+    const providers=[...new Set(eds.flatMap(r=>r.partners||[]))].map(name=>({name,...cat.partners[name]}));
+    return {...s,editions:eds.length,latest:eds[0],charts:pick,providers};
+  });
+  const allCharts=reports.flatMap(r=>charts(r.slug));
+  return {reports,series,allCharts,figures:cat.reports.reduce((n,r)=>n+(r.figureCount||0),0),
+    avax:reports.find(r=>r.slug==='avalanche-rwa-growth-oct-2026')};
+}
+const creditHTML=p=>`<span class="credit ${p.variant} ${p.background}"><img src="${p.src}" alt="">${p.variant==='symbol'?p.name:''}</span>`;
+
+/* ---------- setup ---------- */
+function setupScenes(kickers){
+  $('#s1sub').innerHTML=`<b>${R.reports.length}</b> research reports from RWA Foundation`;
+  const pool=seeded(R.allCharts,2026);
+  let html='';
+  for(let r=0;r<6;r++){const items=pool.slice(r*11,(r+1)*11).map(src=>`<img src="${src}" alt="">`).join('');html+=`<div class="row"><div class="strip">${items}${items}</div></div>`;}
+  $('#wall').innerHTML=html;
+  $('#stats').innerHTML=[[R.reports.length,'Reports'],[R.series.length,'Series'],[R.figures,'Figures']].map(([n,l])=>`<div data-n="${n}"><div class="num display">0</div><div class="lbl">${l}</div></div>`).join('');
+  $('#seriesbox').innerHTML=R.series.map((s,i)=>`<div class="slide series"><div class="left">
+    <div class="kicker">${kickers[s.id]||s.kicker}</div>
+    <h2 class="display"><span class="mask"><span>${s.name}</span></span></h2>
+    <p class="desc">${s.description}</p>
+    <p class="meta"><b>${s.editions} ${s.editions===1?'edition':'editions'}</b> · Latest: ${s.latest.edition}</p>
+    <div class="prov"><div class="k">DATA PROVIDERS</div><div class="credits">${s.providers.map(creditHTML).join('')}</div></div>
+  </div><div class="fan">${s.charts.map(src=>`<img src="${src}" alt="">`).join('')}</div></div>`).join('');
+  $('#soonkick').textContent=kickers.blockchains||'';
+  $('#avaxDate').textContent=R.avax.edition.toUpperCase();
+  $('#avaxName').innerHTML=`${R.avax.shortTitle}<small>${R.avax.figureCount} figures · Published ${R.avax.edition}</small>`;
+}
+async function setupSites(){
+  S1=await loadSite('/research/','#serieslist .ed');
+  // The series kickers are read from the page so their numbering matches the site.
+  const kickers=Object.fromEntries([...S1.D.querySelectorAll('article.series')].map(a=>[a.id.replace('series-',''),a.querySelector('.kicker').textContent]));
+  const row=S1.q('a.ed[href="/research/avalanche-rwa-growth-oct-2026/"]').getBoundingClientRect();
+  S1.row={x:row.left+row.width*.32,y:row.top+row.height/2,top:row.top};
+  S2=await loadSite('/research/avalanche-rwa-growth-oct-2026/','#figure-1','#site2');
+  S2.D.querySelectorAll('img[loading=lazy]').forEach(i=>{i.loading='eager';});
+  await Promise.race([Promise.all([...S2.D.images].map(i=>i.decode().catch(()=>{}))),new Promise(r=>setTimeout(r,15000))]);
+  const y=sel=>S2.q(sel).getBoundingClientRect().top;
+  S2.fig1=y('#figure-1');S2.fig2=y('#figure-2');
+  return kickers;
+}
+
+// Series names shrink until their longest word fits the text column.
+function fitHeadlines(){
+  document.querySelectorAll('.series').forEach(el=>{
+    el.style.display='block';
+    const h=el.querySelector('h2'),text=h.querySelector('.mask>span'),col=el.querySelector('.left').clientWidth;
+    for(let size=100;text.scrollWidth>col&&size>56;size-=4)h.style.fontSize=size-4+'px';
+    el.style.display='';
+  });
+}
+
+/* ---------- scenes ---------- */
+function slide(el,t,start,end){
+  const on=(start===null||t>=start)&&(end===null||t<end+.5);
+  el.style.display=on?'block':'none';
+  if(!on)return false;
+  const pin=start===null?1:E.io3(prog(t,start,start+.5)),pout=end===null?0:E.io3(prog(t,end,end+.5));
+  el.style.transform=`translateX(${(1-pin)*1920-pout*1920}px)`;
+  return true;
+}
+function renderWall(t){
+  const on=inRange(t,T.wall);show($('#wallscene'),on);
+  if(!on)return;
+  const pout=E.io3(prog(t,T.ser0-.1,T.ser0+.4));
+  $('#wallscene').style.opacity=1-pout;
+  $('#wall').style.transform=`translateY(-930px) rotate(-7deg) scale(${1.02+.06*prog(t,...T.wall)})`;
+  document.querySelectorAll('#wall .strip').forEach((s,i)=>{
+    const half=s.scrollWidth/2,speed=40+16*(i%3),off=(speed*(t+i*5.1))%half;
+    s.style.transform=`translateX(${i%2?-half+off:-off}px)`;
+  });
+  document.querySelectorAll('#stats>div').forEach((el,i)=>{
+    const st=3.95+i*.2;
+    el.querySelector('.num').textContent=fmt(+el.dataset.n*E.out3(prog(t,st,st+1.2)));
+    fadeUp(el,t,st,.45,30);
+  });
+  fadeUp($('#archive'),t,5.6,.5,20);
+}
+function renderSeries(t){
+  document.querySelectorAll('.series').forEach((el,i)=>{
+    // The last card stays until the wipe covers it.
+    const st=T.ser0+i*SER,end=i===5?null:st+SER;
+    if(!slide(el,t,st,end))return;
+    if(i===5&&t>=T.walkWipe[1]){el.style.display='none';return;}
+    const u=t-st;
+    fadeUp(el.querySelector('.kicker'),u,.25,.4,16);
+    reveal(el.querySelector('h2 .mask>span'),u,.3,.5);
+    fadeUp(el.querySelector('.desc'),u,.5,.45,18);
+    fadeUp(el.querySelector('.meta'),u,.65,.45,14);
+    fadeUp(el.querySelector('.prov'),u,.8,.45,14);
+    // Charts fan out from a single stack.
+    el.querySelectorAll('.fan img').forEach((img,j)=>{
+      const n=el.querySelectorAll('.fan img').length,k=j-(n-1)/2;
+      const p=E.back(prog(u,.4+j*.12,.95+j*.12)),spread=E.io3(prog(u,.9,1.5));
+      const drift=Math.sin(u*.8+j)*4;
+      img.style.opacity=clamp(prog(u,.4+j*.12,.6+j*.12));
+      img.style.transform=`translate(${k*190*spread+(1-p)*500}px,${Math.abs(k)*30*spread+(1-p)*120+drift}px) rotate(${k*8*spread+(1-p)*10}deg) scale(${.8+.2*p})`;
+      img.style.zIndex=j===Math.floor(n/2)?3:1;
+    });
+  });
+}
+
+/* ---------- walkthrough (inside the real pages) ---------- */
+const SCROLL1=420;
+function cursorAt(t){
+  return track(t,{x:1250,y:960},[
+    [T.click-1.0,T.click-.12,{x:S1.row.x,y:S1.row.y-SCROLL1+4}],
+    [T.nav[1]+.2,T.nav[1]+1.1,{x:1180,y:620}],
+  ]);
+}
+function cameraAt(t){
+  const rowY=S1.row.y-SCROLL1;
+  return track(t,{px:720,py:430,z:.86},[
+    [...T.hero,cover({px:560,py:330,z:1.4})],
+    [T.scroll1[0],T.scroll1[1],cover({px:620,py:rowY-60,z:1.5})],
+    [...T.nav,cover({px:600,py:360,z:1.35})],
+    [T.scroll2[0],T.scroll2[1],cover({px:720,py:470,z:1.5})],
+  ]);
+}
+function renderSites(t){
+  const navd=t>=T.nav[0];
+  S1.W.scrollTo(0,SCROLL1*E.io3(prog(t,...T.scroll1)));
+  // Report: down to the first chart, then on to the second.
+  const f1=S2.fig1-60,f2=S2.fig2-60;
+  S2.W.scrollTo(0,f1*E.io3(prog(t,...T.scroll2))+(f2-f1)*E.io3(prog(t,...T.scroll3)));
+  $('#site2').style.opacity=E.out3(prog(t,T.nav[0]+.15,T.nav[1]));
+  const c=cursorAt(t);
+  // One cursor: on the research page until the report opens, then on the report.
+  renderCursor(S1,t,c,[T.click],navd?Infinity:T.click-1);
+  renderCursor(S2,t,c,[],navd?T.nav[0]:Infinity);
+  if(navd){
+    $('#urltext').textContent='rwaf.xyz/research/avalanche-rwa-growth-oct-2026';
+    $('#loadbar').style.width=E.out3(prog(t,...T.nav))*100+'%';
+    $('#loadbar').style.opacity=1-prog(t,T.nav[1],T.nav[1]+.2);
+  }
+}
+
+/* ---------- Solana teaser ---------- */
+function renderSoon(t){
+  const on=inRange(t,T.soon);show($('#soon'),on);
+  if(!on)return;
+  const u=t-T.soon[0];
+  fadeUp($('#soon>.kicker'),u,.3,.4,16);
+  const lines=$('#soon h2').querySelectorAll('.mask>span');
+  reveal(lines[0],u,.4,.5);reveal(lines[1],u,.55,.5);
+  fadeUp($('#soon .chip'),u,1.0,.45,14);
+  fadeUp($('#rows'),u,1.2,.5,40);
+  // The Solana row slides in above the latest published chain report.
+  const ps=E.back(prog(t,T.solRow,T.solRow+.55)),push=E.io3(prog(t,T.solRow,T.solRow+.45));
+  $('#edSol').style.top='86px';
+  $('#edSol').style.opacity=clamp(prog(t,T.solRow,T.solRow+.2));
+  $('#edSol').style.transform=`translateY(${(1-ps)*-60}px)`;
+  $('#edAvax').style.top=(86+118*push)+'px';
+  const glow=t>T.solRow+.6?.5+.5*Math.sin((t-T.solRow-.6)*Math.PI*2/1.4):0;
+  $('#edSol .tag').style.boxShadow=`0 0 ${10+18*glow}px rgba(153,69,255,${.25+.3*glow})`;
+  $('#soon .glow').style.transform=`translate(${Math.sin(u*.5)*40}px,${Math.cos(u*.4)*30}px)`;
+}
+
+/* ---------- frame ---------- */
+function renderFrame(t){
+  renderGlow(t);
+  const s1=inRange(t,T.s1);show($('#s1'),s1);
+  if(s1)renderTitle($('#s1'),t);
+  renderWipe(t,[T.wipe1,T.walkWipe,T.soonWipe]);
+  renderWall(t);
+  renderSeries(t);
+  const s5=inRange(t,T.s5);$('#s5').style.visibility=s5?'visible':'hidden';
+  if(s5){
+    renderBrowser(t,cameraAt(t),{...T,address:'rwaf.xyz/research'});
+    renderSites(t);
+    renderPills(t,$('#s5'),T.pills);
+  }
+  renderSoon(t);
+  const s9=t>=T.end-.45;show($('#s9'),s9);
+  if(s9){
+    $('#s9').style.transform=`translateY(${(1-E.io3(prog(t,T.end-.45,T.end)))*100}%)`;
+    renderEndcard($('#s9'),t,T.end);
+  }
+}
+
+/* ---------- sound cues (synthesized by sfx.py) ---------- */
+function sfxEvents(){
+  const ev=[{t:.14,k:'pop'},{t:.5,k:'thud'},{t:.64,k:'thud'}];
+  for(const w of [T.wipe1,T.walkWipe,T.soonWipe])ev.push({t:w[0]-.05,k:'whoosh'});
+  for(let i=0;i<3;i++)for(let k=0;k<8;k++)ev.push({t:3.95+i*.2+1.2*(1-Math.pow(1-k/8,1/3)),k:'tick',p:k/8});
+  for(let i=0;i<6;i++){
+    const st=T.ser0+i*SER;
+    ev.push({t:st-.02,k:'whoosh',p:.45},{t:st+.3,k:'thud',p:.6});
+    for(let j=0;j<3;j++)ev.push({t:st+.4+j*.12,k:'pop',p:.45});
+  }
+  for(const c of charTimes('rwaf.xyz/research',T.url))ev.push({t:c,k:'key'});
+  ev.push({t:T.click,k:'click'});
+  ev.push({t:T.soon[0]+.4,k:'thud'},{t:T.soon[0]+.55,k:'thud'},{t:T.solRow,k:'chime'});
+  ev.push({t:T.end-.47,k:'whoosh'},{t:T.end,k:'final'});
+  return ev.sort((a,b)=>a.t-b.t);
+}
+
+window.stageReady=(async()=>{
+  R=await loadReports();
+  const kickers=await setupSites();
+  setupScenes(kickers);
+  await loadFonts();await imagesLoaded(document);
+  fitHeadlines();
+  renderFrame(0);
+  return {fps:FPS,duration:DURATION,sfx:sfxEvents()};
+})();
+</script>
+</body>
+</html>

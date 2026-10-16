@@ -131,9 +131,9 @@ input,select{caret-color:#FF6200}
 #vdrop{position:fixed;z-index:9998;background:#fff;border:1px solid #D7CFBE;border-radius:12px;box-shadow:0 26px 60px -20px rgba(32,26,19,.45);padding:6px;font-family:'Instrument Sans',sans-serif;font-size:14.5px;color:#201A13;opacity:0;pointer-events:none;transform-origin:50% 0}
 #vdrop div{height:38px;line-height:38px;padding:0 12px;border-radius:8px;white-space:nowrap}
 #vdrop div.on{background:rgba(255,98,0,.1);color:#D85300}`;
-// Loads a site page into the stage iframe and adds the cursor, ripple and dropdown.
-async function loadSite(path,ready='.ec-row'){
-  const frame=$('#site');
+// Loads a site page into a stage iframe and adds the cursor, ripple and dropdown.
+async function loadSite(path,ready='.ec-row',frameSel='#site'){
+  const frame=$(frameSel);
   await new Promise(r=>{frame.onload=r;frame.src=path;});
   const W=frame.contentWindow,D=frame.contentDocument;
   for(let i=0;i<200&&!D.querySelector(ready);i++)await new Promise(r=>setTimeout(r,50));
